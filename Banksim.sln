@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36221.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Banksim.api", "Banksim.api\Banksim.api.csproj", "{51AB6F54-41F5-40DF-B485-8E8B6F07AAD7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankSim.API", "Banksim.api\BankSim.API.csproj", "{51AB6F54-41F5-40DF-B485-8E8B6F07AAD7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankSim.Domain", "BankSim.Domain\BankSim.Domain.csproj", "{7CBF946F-1EE1-411D-8A54-80CDC77FF588}"
 EndProject
