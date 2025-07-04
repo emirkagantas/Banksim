@@ -10,7 +10,6 @@ namespace BankSim.Domain.Interfaces
         Task<List<Customer>> GetAllAsync();
         Task<Customer?> GetByIdAsync(int id);
         Task AddAsync(Customer customer);
-        Task UpdateAsync(Customer customer);   // <--- güncellendi
-        Task DeleteAsync(Customer customer);   // <--- güncellendi
-    }
+        Task UpdateAsync(Customer customer);  
+        Task DeleteAsync(Customer customer);  
 }

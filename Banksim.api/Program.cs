@@ -1,4 +1,4 @@
-using BankSim.API.Middleware; // <-- ExceptionMiddleware'ý ekliyoruz
+using BankSim.API.Middleware; 
 using BankSim.Application.Mapping;
 using BankSim.Application.Services;
 using BankSim.Application.Validation;
@@ -38,9 +38,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// *** Exception Middleware buraya eklendi ***
+
 app.UseMiddleware<ExceptionMiddleware>();
-// *******************************************
+
 
 app.UseAuthorization();
 

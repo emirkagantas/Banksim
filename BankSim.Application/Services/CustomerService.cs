@@ -41,14 +41,13 @@ namespace BankSim.Application.Services
             var customer = await _repository.GetByIdAsync(id);
             if (customer == null) return;
             _mapper.Map(dto, customer);
-            await _repository.UpdateAsync(customer); // async ve await eklendi
+            await _repository.UpdateAsync(customer); 
         }
 
         public async Task DeleteAsync(int id)
         {
             var customer = await _repository.GetByIdAsync(id);
             if (customer == null) return;
-            await _repository.DeleteAsync(customer); // async ve await eklendi
-        }
+            await _repository.DeleteAsync(customer); 
     }
 }
