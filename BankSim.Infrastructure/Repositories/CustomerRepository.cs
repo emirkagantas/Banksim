@@ -2,12 +2,8 @@
 using BankSim.Domain.Interfaces;
 using BankSim.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-
 
 namespace BankSim.Infrastructure.Repositories
 {
@@ -33,17 +29,19 @@ namespace BankSim.Infrastructure.Repositories
         public async Task AddAsync(Customer customer)
         {
             await _context.Customers.AddAsync(customer);
+            await _context.SaveChangesAsync(); 
         }
 
-        public void Update(Customer customer)
+        public async Task UpdateAsync(Customer customer)
         {
             _context.Customers.Update(customer);
+            await _context.SaveChangesAsync(); 
         }
 
-        public void Delete(Customer customer)
+        public async Task DeleteAsync(Customer customer)
         {
             _context.Customers.Remove(customer);
+            await _context.SaveChangesAsync(); 
         }
     }
 }
-

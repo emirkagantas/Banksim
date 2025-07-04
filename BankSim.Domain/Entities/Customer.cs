@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.SymbolStore;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,7 +19,7 @@ namespace BankSim.Domain.Entities
         public ICollection<Account> Accounts { get; set; } = new List<Account>();
 
 
-
+     
 
 
     }

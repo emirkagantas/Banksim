@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using BankSim.Application.DTOs;
@@ -44,15 +41,14 @@ namespace BankSim.Application.Services
             var customer = await _repository.GetByIdAsync(id);
             if (customer == null) return;
             _mapper.Map(dto, customer);
-            _repository.Update(customer);
+            await _repository.UpdateAsync(customer); // async ve await eklendi
         }
 
         public async Task DeleteAsync(int id)
         {
             var customer = await _repository.GetByIdAsync(id);
             if (customer == null) return;
-            _repository.Delete(customer);
+            await _repository.DeleteAsync(customer); // async ve await eklendi
         }
     }
 }
-

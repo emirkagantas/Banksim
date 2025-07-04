@@ -9,6 +9,7 @@ namespace BankSim.API.Controllers
         [HttpGet("hello")]
         public IActionResult Hello()
         {
+            
             return Ok("Merhaba BankSim!");
         }
     }

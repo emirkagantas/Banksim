@@ -1,9 +1,13 @@
-using BankSim.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using BankSim.Application.Services;
-using BankSim.Domain.Interfaces;
-using BankSim.Infrastructure.Repositories;
+using BankSim.API.Middleware; // <-- ExceptionMiddleware'ý ekliyoruz
 using BankSim.Application.Mapping;
+using BankSim.Application.Services;
+using BankSim.Application.Validation;
+using BankSim.Domain.Interfaces;
+using BankSim.Infrastructure.Persistence;
+using BankSim.Infrastructure.Repositories;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +17,9 @@ builder.Services.AddDbContext<BankSimDbContext>(options =>
 );
 
 builder.Services.AddControllers();
+
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateCustomerValidator>();
 
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
@@ -30,6 +37,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// *** Exception Middleware buraya eklendi ***
+app.UseMiddleware<ExceptionMiddleware>();
+// *******************************************
 
 app.UseAuthorization();
 
