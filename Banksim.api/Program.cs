@@ -1,4 +1,4 @@
-using BankSim.API.Middleware; 
+using BankSim.API.Middleware;
 using BankSim.Application.Mapping;
 using BankSim.Application.Services;
 using BankSim.Application.Validation;
@@ -23,6 +23,9 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateCustomerValidator>();
 
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+
 builder.Services.AddAutoMapper(typeof(CustomerProfile));
 
 builder.Services.AddEndpointsApiExplorer();
@@ -38,9 +41,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
 app.UseMiddleware<ExceptionMiddleware>();
-
 
 app.UseAuthorization();
 

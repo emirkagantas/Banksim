@@ -16,6 +16,9 @@ namespace BankSim.Application.Mapping
             CreateMap<Customer, CustomerDto>();
             CreateMap<CreateCustomerDto, Customer>();
             CreateMap<UpdateCustomerDto, Customer>();
+            CreateMap<Account, AccountDto>();
+            CreateMap<CreateAccountDto, Account>();
+
         }
     }
 }
