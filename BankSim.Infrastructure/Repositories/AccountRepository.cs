@@ -45,10 +45,6 @@ namespace BankSim.Infrastructure.Repositories
         {
             _context.Accounts.Remove(account);
         }
-        public async Task SaveChangesAsync()
-        {
-            await _context.SaveChangesAsync();
-        }
-
+      
     }
 }

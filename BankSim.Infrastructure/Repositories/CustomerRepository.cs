@@ -29,19 +29,19 @@ namespace BankSim.Infrastructure.Repositories
         public async Task AddAsync(Customer customer)
         {
             await _context.Customers.AddAsync(customer);
-            await _context.SaveChangesAsync(); 
+         
         }
 
         public async Task UpdateAsync(Customer customer)
         {
             _context.Customers.Update(customer);
-            await _context.SaveChangesAsync(); 
+       
         }
 
         public async Task DeleteAsync(Customer customer)
         {
             _context.Customers.Remove(customer);
-            await _context.SaveChangesAsync(); 
+            
         }
     }
 }

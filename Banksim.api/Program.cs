@@ -3,6 +3,7 @@ using BankSim.Application.Mapping;
 using BankSim.Application.Services;
 using BankSim.Application.Validation;
 using BankSim.Domain.Interfaces;
+using BankSim.Infrastructure;
 using BankSim.Infrastructure.Persistence;
 using BankSim.Infrastructure.Repositories;
 using FluentValidation;
@@ -25,7 +26,11 @@ builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
 
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+    
 builder.Services.AddAutoMapper(typeof(CustomerProfile));
 
 builder.Services.AddEndpointsApiExplorer();

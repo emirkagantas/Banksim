@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using BankSim.Application.DTOs;
 using BankSim.Domain.Entities;
 using BankSim.Domain.Interfaces;
@@ -11,11 +9,14 @@ namespace BankSim.Application.Services
     {
         private readonly ICustomerRepository _repository;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CustomerService(ICustomerRepository repository, IMapper mapper)
+        public CustomerService(ICustomerRepository repository, IMapper mapper, IUnitOfWork unitOfWork)
         {
             _repository = repository;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
+
         }
 
         public async Task<List<CustomerDto>> GetAllAsync()
@@ -34,6 +35,7 @@ namespace BankSim.Application.Services
         {
             var entity = _mapper.Map<Customer>(dto);
             await _repository.AddAsync(entity);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task UpdateAsync(int id, UpdateCustomerDto dto)
@@ -42,6 +44,7 @@ namespace BankSim.Application.Services
             if (customer == null) return;
             _mapper.Map(dto, customer);
             await _repository.UpdateAsync(customer);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int id)
@@ -49,6 +52,7 @@ namespace BankSim.Application.Services
             var customer = await _repository.GetByIdAsync(id);
             if (customer == null) return;
             await _repository.DeleteAsync(customer);
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }

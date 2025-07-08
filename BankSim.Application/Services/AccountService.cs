@@ -16,12 +16,15 @@ namespace BankSim.Application.Services
         private readonly IAccountRepository _repository;
         private readonly ICustomerRepository _customerRepository;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork; 
 
-        public AccountService(IAccountRepository repository, ICustomerRepository customerRepository, IMapper mapper)
+        public AccountService(IAccountRepository repository, ICustomerRepository customerRepository, IMapper mapper, IUnitOfWork unitOfWork)
         {
             _repository = repository;
             _customerRepository = customerRepository;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
+            
         }
 
         public async Task<List<AccountDto>> GetByCustomerIdAsync(int customerId)
@@ -49,7 +52,9 @@ namespace BankSim.Application.Services
             };
 
             await _repository.AddAsync(account);
-            await _repository.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
+
+      
 
         }
 
@@ -59,7 +64,8 @@ namespace BankSim.Application.Services
             if (account == null) return;
 
             _repository.Delete(account);
-            await _repository.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
+
         }
     }
 }
