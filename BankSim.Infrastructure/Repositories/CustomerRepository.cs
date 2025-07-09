@@ -34,7 +34,7 @@ namespace BankSim.Infrastructure.Repositories
 
         public async Task UpdateAsync(Customer customer)
         {
-            _context.Customers.Update(customer);
+             _context.Customers.Update(customer);
        
         }
 

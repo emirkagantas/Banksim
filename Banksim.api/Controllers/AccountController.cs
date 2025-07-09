@@ -48,5 +48,15 @@ namespace BankSim.API.Controllers
             await _accountService.DeleteAsync(id);
             return NoContent();
         }
+     
+        [HttpGet("{id}/balance")]
+        public async Task<IActionResult> GetBalance(int id)
+        {
+            var account = await _accountService.GetByIdAsync(id);
+            if (account == null)
+                return NotFound("Hesap bulunamadı.");
+            return Ok(new { account.IBAN, account.Balance });
+        }
+
     }
 }

@@ -20,6 +20,7 @@ namespace BankSim.Application.Mapping
             CreateMap<CreateAccountDto, Account>();
             CreateMap<Transaction, TransactionDto>().ReverseMap();
 
+
         }
     }
 }

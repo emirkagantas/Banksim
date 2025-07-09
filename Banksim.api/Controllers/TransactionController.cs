@@ -30,5 +30,18 @@ namespace BankSim.API.Controllers
             var transactions = await _transactionService.GetByAccountIdAsync(accountId);
             return Ok(transactions);
         }
+
+   
+        [HttpGet("account/{accountId}/summary")]
+        public async Task<IActionResult> GetMiniStatement(int accountId)
+        {
+            var list = await _transactionService.GetByAccountIdAsync(accountId);
+            var sorted = list
+                .OrderByDescending(t => t.TransactionDate)
+                .Take(10);
+
+            return Ok(sorted);
+        }
+
     }
 }

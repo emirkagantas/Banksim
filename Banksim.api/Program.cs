@@ -8,7 +8,10 @@ using BankSim.Infrastructure.Persistence;
 using BankSim.Infrastructure.Repositories;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,13 +31,30 @@ builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
-
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-    
+
 builder.Services.AddAutoMapper(typeof(CustomerProfile));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+
+var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]!);
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(opt =>
+    {
+        opt.RequireHttpsMetadata = false;
+        opt.SaveToken = true;
+        opt.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key)
+        };
+    });
 
 var app = builder.Build();
 
@@ -48,6 +68,7 @@ app.UseHttpsRedirection();
 
 app.UseMiddleware<ExceptionMiddleware>();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
