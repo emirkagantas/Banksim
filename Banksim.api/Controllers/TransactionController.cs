@@ -1,5 +1,6 @@
 ﻿using BankSim.Application.DTOs;
 using BankSim.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BankSim.API.Controllers
@@ -15,7 +16,7 @@ namespace BankSim.API.Controllers
             _transactionService = transactionService;
         }
 
-      
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Transfer([FromBody] TransactionDto dto)
         {
@@ -23,7 +24,7 @@ namespace BankSim.API.Controllers
             return Ok("Para transferi başarılı.");
         }
 
-       
+        [Authorize]
         [HttpGet("account/{accountId}")]
         public async Task<IActionResult> GetByAccount(int accountId)
         {
@@ -31,7 +32,7 @@ namespace BankSim.API.Controllers
             return Ok(transactions);
         }
 
-   
+        [Authorize]
         [HttpGet("account/{accountId}/summary")]
         public async Task<IActionResult> GetMiniStatement(int accountId)
         {

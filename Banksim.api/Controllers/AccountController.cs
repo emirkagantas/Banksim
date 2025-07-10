@@ -1,5 +1,6 @@
 ﻿using BankSim.Application.DTOs;
 using BankSim.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BankSim.API.Controllers
@@ -15,7 +16,7 @@ namespace BankSim.API.Controllers
             _accountService = accountService;
         }
 
-
+        [Authorize]
         [HttpGet("customer/{customerId}")]
         public async Task<IActionResult> GetByCustomerId(int customerId)
         {
@@ -23,7 +24,7 @@ namespace BankSim.API.Controllers
             return Ok(accounts);
         }
 
-
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -33,7 +34,7 @@ namespace BankSim.API.Controllers
             return Ok(account);
         }
 
-
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateAccountDto dto)
         {
@@ -41,14 +42,14 @@ namespace BankSim.API.Controllers
             return Ok("Hesap başarıyla oluşturuldu.");
         }
 
-
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             await _accountService.DeleteAsync(id);
             return NoContent();
         }
-     
+        [Authorize]
         [HttpGet("{id}/balance")]
         public async Task<IActionResult> GetBalance(int id)
         {
