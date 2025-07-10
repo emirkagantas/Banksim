@@ -1,5 +1,6 @@
 ﻿using BankSim.Application.DTOs;
 using BankSim.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BankSim.API.Controllers
@@ -14,7 +15,7 @@ namespace BankSim.API.Controllers
         {
             _service = service;
         }
-
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {

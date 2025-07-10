@@ -16,7 +16,6 @@ namespace BankSim.Application.Utils
             {
                 var bytes = Encoding.UTF8.GetBytes(password);
                 var hashBytes = sha.ComputeHash(bytes);
-                // Hash'i hex string olarak döndür
                 var sb = new StringBuilder();
                 foreach (var b in hashBytes)
                     sb.Append(b.ToString("x2"));

@@ -1,6 +1,6 @@
+using BankSim.Application.Services;
 using BankSim.API.Middleware;
 using BankSim.Application.Mapping;
-using BankSim.Application.Services;
 using BankSim.Application.Validation;
 using BankSim.Domain.Interfaces;
 using BankSim.Infrastructure;
@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,8 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
 
 builder.Services.AddAutoMapper(typeof(CustomerProfile));
 
