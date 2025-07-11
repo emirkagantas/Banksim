@@ -9,7 +9,8 @@ namespace BankSim.Domain.Interfaces
         Task<Account?> GetByIbanAsync(string iban);
         Task AddAsync(Account account);
         void Delete(Account account);
-   
+        Task<List<Account>> GetByIdsAsync(List<int> ids);
+
 
     }
 }

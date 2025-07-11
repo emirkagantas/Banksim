@@ -45,6 +45,14 @@ namespace BankSim.Infrastructure.Repositories
         {
             _context.Accounts.Remove(account);
         }
-      
+        public async Task<List<Account>> GetByIdsAsync(List<int> ids)
+        {
+            return await _context.Accounts
+                .Include(a => a.Customer)
+                .Where(a => ids.Contains(a.Id))
+                .ToListAsync();
+        }
+
+
     }
 }

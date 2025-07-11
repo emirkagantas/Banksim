@@ -12,6 +12,7 @@ namespace BankSim.Application.DTOs
         public int ToAccountId { get; set; }
         public decimal Amount { get; set; }
         public DateTime TransactionDate { get; set; }
+       
     }
 }
 

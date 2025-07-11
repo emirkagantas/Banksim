@@ -4,6 +4,7 @@ using BankSim.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BankSim.Infrastructure.Migrations
 {
     [DbContext(typeof(BankSimDbContext))]
-    partial class BankSimDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250710220322_AddCurrencyToAccount")]
+    partial class AddCurrencyToAccount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -92,12 +95,6 @@ namespace BankSim.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("ConvertedAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("ExchangeRate")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("FromAccountId")

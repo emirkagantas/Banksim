@@ -30,7 +30,8 @@ namespace BankSim.API.Middleware
                 var response = new
                 {
                     error = "Sunucu hatası. Lütfen tekrar deneyin.",
-                    detail = ex.Message
+                    detail = ex.Message,
+                    stack = ex.StackTrace
                 };
 
                 await context.Response.WriteAsync(JsonSerializer.Serialize(response));

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using BankSim.Application.DTOs;
 using BankSim.Application.Utils;
 using BankSim.Domain.Entities;
@@ -16,7 +11,7 @@ namespace BankSim.Application.Services
         private readonly IAccountRepository _repository;
         private readonly ICustomerRepository _customerRepository;
         private readonly IMapper _mapper;
-        private readonly IUnitOfWork _unitOfWork; 
+        private readonly IUnitOfWork _unitOfWork;
 
         public AccountService(IAccountRepository repository, ICustomerRepository customerRepository, IMapper mapper, IUnitOfWork unitOfWork)
         {
@@ -24,7 +19,7 @@ namespace BankSim.Application.Services
             _customerRepository = customerRepository;
             _mapper = mapper;
             _unitOfWork = unitOfWork;
-            
+
         }
 
         public async Task<List<AccountDto>> GetByCustomerIdAsync(int customerId)
@@ -54,10 +49,9 @@ namespace BankSim.Application.Services
             await _repository.AddAsync(account);
             await _unitOfWork.SaveChangesAsync();
 
-      
+
 
         }
-
         public async Task DeleteAsync(int id)
         {
             var account = await _repository.GetByIdAsync(id);
@@ -67,6 +61,12 @@ namespace BankSim.Application.Services
             await _unitOfWork.SaveChangesAsync();
 
         }
+        public async Task<bool> IsAccountBelongsToUser(int accountId, string userEmail)
+        {
+            var account = await _repository.GetByIdAsync(accountId);
+            return account != null && account.Customer?.Email == userEmail;
+        }
+
     }
 }
 

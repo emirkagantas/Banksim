@@ -1,5 +1,6 @@
 ﻿using BankSim.Application.DTOs;
 using BankSim.Application.Services;
+using BankSim.Application.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -44,5 +45,54 @@ namespace BankSim.API.Controllers
             return Ok(sorted);
         }
 
+        [Authorize]
+        [HttpPost("filter")]
+        public async Task<IActionResult> GetByFilter([FromBody] TransactionFilterDto filter)
+        {
+            var list = await _transactionService.GetByFilterAsync(filter);
+            return Ok(list);
+        }
+
+        [Authorize]
+        [HttpPost("export-excel")]
+        public async Task<IActionResult> ExportToExcel([FromBody] TransactionFilterDto filter)
+        {
+            var exportList = await _transactionService.GetExportListAsync(filter);
+            var fileContent = ExcelExportHelper.ExportTransactions(exportList);
+            var fileName = FileNameHelper.BuildExportFileName(exportList.FirstOrDefault()?.FromFullName, "xlsx");
+            return File(fileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        [Authorize]
+        [HttpPost("export-pdf")]
+        public async Task<IActionResult> ExportToPdf([FromBody] TransactionFilterDto filter)
+        {
+            try
+            {
+                var exportList = await _transactionService.GetExportListAsync(filter);
+                var fileContent = PdfExportHelper.ExportTransactions(exportList);
+
+                if (fileContent == null || fileContent.Length == 0)
+                    return StatusCode(500, "PDF içeriği boş döndü.");
+
+                var fileName = FileNameHelper.BuildExportFileName(exportList.FirstOrDefault()?.FromFullName, "pdf");
+                return File(fileContent, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+               
+                Console.WriteLine("PDF export hatası: " + ex.ToString());
+                return StatusCode(500, "PDF oluşturulurken hata oluştu.");
+            }
+        }
+
+
+
+
+
+
+
+
     }
 }
+

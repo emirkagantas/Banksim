@@ -11,5 +11,8 @@ namespace BankSim.Application.Services
     {
         Task TransferAsync(TransactionDto dto);
         Task<List<TransactionDto>> GetByAccountIdAsync(int accountId);
+        Task<List<TransactionDto>> GetByFilterAsync(TransactionFilterDto filter);
+        Task<List<TransactionExportDto>> GetExportListAsync(TransactionFilterDto filter);
+
     }
 }

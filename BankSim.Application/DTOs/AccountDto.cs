@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BankSim.Domain.Enums.BankSim.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,7 @@ namespace BankSim.Application.DTOs
         public string IBAN { get; set; } = null!;
         public decimal Balance { get; set; }
         public int CustomerId { get; set; }
+        public Currency Currency { get; set; }
     }
 }
 

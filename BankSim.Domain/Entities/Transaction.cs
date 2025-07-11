@@ -13,6 +13,9 @@ namespace BankSim.Domain.Entities
         public int FromAccountId { get; set; }
         public decimal Amount { get; set; }
         public DateTime TransactionDate { get; set; }
+        public decimal? ExchangeRate { get; set; }     
+        public decimal? ConvertedAmount { get; set; }  
+
 
         public Account FromAccount { get; set; } = null!;
         public Account ToAccount { get; set; } = null!;
