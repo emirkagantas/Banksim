@@ -1,0 +1,31 @@
+﻿@model List<BankSim.Ui.Models.AccountDto>
+@{
+    ViewData["Title"] = "Hesaplarım";
+}
+<h2>Hesaplarım</h2>
+@if (Model.Count == 0)
+{
+    <p>Henüz hesabınız yok.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>IBAN</th>
+                <th>Bakiye</th>
+                <th>Para Birimi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var h in Model)
+            {
+                <tr>
+                    <td>@h.IBAN</td>
+                    <td>@h.Balance</td>
+                    <td>@h.Currency</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

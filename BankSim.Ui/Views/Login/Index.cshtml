@@ -1,0 +1,13 @@
+﻿@{
+    ViewData["Title"] = "Giriş Yap";
+}
+<h2>Giriş Yap</h2>
+@if (ViewBag.Hata != null)
+{
+    <div class="alert alert-danger">@ViewBag.Hata</div>
+}
+<form method="post">
+    <input name="email" placeholder="Email" class="form-control mb-2" />
+    <input name="password" type="password" placeholder="Şifre" class="form-control mb-2" />
+    <button type="submit" class="btn btn-primary">Giriş Yap</button>
+</form>
