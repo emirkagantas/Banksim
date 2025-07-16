@@ -1,41 +1,76 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 
 namespace BankSim.Ui.Services
 {
-    public class ApiService
+    public class ApiService : IApiService
     {
         private readonly HttpClient _client;
         private readonly IHttpContextAccessor _http;
+        private readonly string? _baseUrl;
 
-        public ApiService(HttpClient client, IHttpContextAccessor http)
+        public ApiService(HttpClient client, IHttpContextAccessor http, IConfiguration configuration)
         {
             _client = client;
             _http = http;
+            _baseUrl = configuration["ApiBaseUrl"];
         }
 
-        public async Task<string> GetToken()
+        private void SetAuthorizationHeader()
+        {
+            var token = GetToken();
+            if (!string.IsNullOrEmpty(token))
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            else
+                _client.DefaultRequestHeaders.Authorization = null;
+        }
+
+        public string GetToken()
         {
             return _http.HttpContext?.Session.GetString("token") ?? "";
         }
 
-        public async Task<HttpResponseMessage> GetAsync(string url)
+        public async Task<HttpResponseMessage> GetAsync(string endpoint)
         {
-            _client.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", await GetToken());
-            return await _client.GetAsync(url);
+            SetAuthorizationHeader();
+            if (_baseUrl == null)
+                throw new Exception("API base URL bulunamadı.");
+            return await _client.GetAsync(_baseUrl + endpoint);
         }
 
-        public async Task<HttpResponseMessage> PostAsync<T>(string url, T data)
+        public async Task<HttpResponseMessage> PostAsync<T>(string endpoint, T data)
         {
-            _client.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", await GetToken());
+            SetAuthorizationHeader();
+            if (_baseUrl == null)
+                throw new Exception("API base URL bulunamadı.");
             var json = JsonConvert.SerializeObject(data);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            return await _client.PostAsync(url, content);
+            return await _client.PostAsync(_baseUrl + endpoint, content);
+        }
+
+        
+        public async Task<string?> GetErrorMessageAsync(HttpResponseMessage response)
+        {
+            if (response.Content == null)
+                return null;
+            var errorString = await response.Content.ReadAsStringAsync();
+            try
+            {
+                var error = JsonConvert.DeserializeObject<ApiErrorResponse>(errorString);
+                return error?.message;
+            }
+            catch
+            {
+                return errorString; 
+            }
+        }
+
+        private class ApiErrorResponse
+        {
+            public string? message { get; set; }
         }
     }
-
 }

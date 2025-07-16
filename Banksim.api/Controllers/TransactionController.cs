@@ -22,7 +22,7 @@ namespace BankSim.API.Controllers
         public async Task<IActionResult> Transfer([FromBody] TransactionDto dto)
         {
             await _transactionService.TransferAsync(dto);
-            return Ok("Para transferi başarılı.");
+            return Ok(new { message = "Para transferi başarılı." });
         }
 
         [Authorize]
@@ -67,32 +67,14 @@ namespace BankSim.API.Controllers
         [HttpPost("export-pdf")]
         public async Task<IActionResult> ExportToPdf([FromBody] TransactionFilterDto filter)
         {
-            try
-            {
-                var exportList = await _transactionService.GetExportListAsync(filter);
-                var fileContent = PdfExportHelper.ExportTransactions(exportList);
+            var exportList = await _transactionService.GetExportListAsync(filter);
+            var fileContent = PdfExportHelper.ExportTransactions(exportList);
 
-                if (fileContent == null || fileContent.Length == 0)
-                    return StatusCode(500, "PDF içeriği boş döndü.");
+            if (fileContent == null || fileContent.Length == 0)
+                return StatusCode(500, new { message = "PDF içeriği boş döndü." });
 
-                var fileName = FileNameHelper.BuildExportFileName(exportList.FirstOrDefault()?.FromFullName, "pdf");
-                return File(fileContent, "application/pdf", fileName);
-            }
-            catch (Exception ex)
-            {
-               
-                Console.WriteLine("PDF export hatası: " + ex.ToString());
-                return StatusCode(500, "PDF oluşturulurken hata oluştu.");
-            }
+            var fileName = FileNameHelper.BuildExportFileName(exportList.FirstOrDefault()?.FromFullName, "pdf");
+            return File(fileContent, "application/pdf", fileName);
         }
-
-
-
-
-
-
-
-
     }
 }
-

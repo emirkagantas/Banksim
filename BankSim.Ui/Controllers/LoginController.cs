@@ -6,21 +6,22 @@ using Newtonsoft.Json;
 namespace BankSim.Ui.Controllers
 {
     [AllowAnonymous]
-    public class LoginController : BaseController 
+    public class LoginController : BaseController
     {
-        private readonly ApiService _api;
+        private readonly IApiService _api;
 
-        public LoginController(ApiService api)
+        public LoginController(IApiService api)
         {
             _api = api;
         }
+
 
         public IActionResult Index() => View();
 
         [HttpPost]
         public async Task<IActionResult> Index(string email, string password)
         {
-            var response = await _api.PostAsync("https://localhost:7291/api/auth/login", new { email, password });
+            var response = await _api.PostAsync("/api/auth/login", new { email, password });
 
             if (!response.IsSuccessStatusCode)
             {

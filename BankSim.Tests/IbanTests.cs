@@ -2,17 +2,22 @@
 
 namespace BankSim.Tests
 {
-    public class IbanTests
+    public class IbanGeneratorTests
     {
         [Fact]
-        public void Generate_ShouldReturnStringStartingWithTR_And20Chars()
+        public void Generate_ShouldStartWithTR_AndBe20Chars()
         {
-
             var iban = IbanGenerator.Generate();
-
-
             Assert.StartsWith("TR", iban);
             Assert.Equal(20, iban.Length);
+        }
+
+        [Fact]
+        public void Generate_ShouldBeUnique()
+        {
+            var iban1 = IbanGenerator.Generate();
+            var iban2 = IbanGenerator.Generate();
+            Assert.NotEqual(iban1, iban2);
         }
     }
 }

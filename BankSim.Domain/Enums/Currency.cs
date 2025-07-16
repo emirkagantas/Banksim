@@ -4,15 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace BankSim.Domain.Enums
 {
-    namespace BankSim.Domain.Enums
+    public enum Currency
     {
-        public enum Currency
-        {
-            TL = 1,
-            USD = 2
-        }
+        TL = 1,
+        USD = 2
     }
-
 }
+
+

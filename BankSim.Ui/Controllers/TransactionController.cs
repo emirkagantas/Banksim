@@ -5,21 +5,21 @@ using Newtonsoft.Json;
 
 namespace BankSim.Ui.Controllers
 {
-    public class TransactionController : BaseController 
+    public class TransactionController : BaseController
     {
-        private readonly ApiService _api;
+        private readonly IApiService _api;
 
-        public TransactionController(ApiService api)
+        public TransactionController(IApiService api)
         {
             _api = api;
         }
 
+
         public async Task<IActionResult> Index()
         {
-
             int customerId = GetCustomerIdFromToken();
 
-            var response = await _api.GetAsync($"https://localhost:7291/api/account/customer/{customerId}");
+            var response = await _api.GetAsync($"/api/account/customer/{customerId}");
             var hesaplar = new List<AccountDto>();
             if (response.IsSuccessStatusCode)
             {
@@ -34,12 +34,9 @@ namespace BankSim.Ui.Controllers
         [HttpPost]
         public async Task<IActionResult> Index(TransactionDto dto)
         {
-            var token = GetToken();
-            if (string.IsNullOrEmpty(token))
-                return RedirectToAction("Index", "Login");
             int customerId = GetCustomerIdFromToken();
 
-            var responseAccounts = await _api.GetAsync($"https://localhost:7291/api/account/customer/{customerId}");
+            var responseAccounts = await _api.GetAsync($"/api/account/customer/{customerId}");
             var hesaplar = new List<AccountDto>();
             if (responseAccounts.IsSuccessStatusCode)
             {
@@ -48,7 +45,7 @@ namespace BankSim.Ui.Controllers
             }
             ViewBag.Accounts = hesaplar;
 
-            var response = await _api.PostAsync("https://localhost:7291/api/transaction", dto);
+            var response = await _api.PostAsync("/api/transaction", dto);
 
             if (!response.IsSuccessStatusCode)
             {

@@ -1,0 +1,49 @@
+﻿using BankSim.Ui.Models;
+using BankSim.Ui.Services;
+using Newtonsoft.Json;
+
+
+namespace BankSim.Ui.Services
+{
+    public class AccountService : IAccountService
+    {
+        private readonly IApiService _apiService;
+
+        public AccountService(IApiService apiService)
+        {
+            _apiService = apiService;
+        }
+
+        public async Task<List<AccountDto>> GetAccountsByUserAsync(string userName)
+        {
+            var response = await _apiService.GetAsync($"/api/accounts/user/{userName}");
+            if (!response.IsSuccessStatusCode)
+                return new List<AccountDto>();
+
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<List<AccountDto>>(json) ?? new List<AccountDto>();
+        }
+
+        public async Task<AccountDto> GetAccountByIdAsync(int id)
+        {
+            var response = await _apiService.GetAsync($"/api/accounts/{id}");
+            if (!response.IsSuccessStatusCode)
+                return null;
+
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<AccountDto>(json);
+        }
+
+        public async Task CreateAccountAsync(string userName, CreateAccountDto dto)
+        {
+            
+            var response = await _apiService.PostAsync("/api/accounts", dto);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorMsg = await _apiService.GetErrorMessageAsync(response);
+                throw new Exception(errorMsg ?? "Hesap oluşturulamadı!");
+            }
+        }
+    }
+}

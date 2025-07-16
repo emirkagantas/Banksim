@@ -25,10 +25,21 @@ namespace BankSim.Application.Services
 
         public async Task RegisterAsync(RegisterDto dto)
         {
-            var exists = (await _customerRepository.GetAllAsync()).Any(x => x.Email == dto.Email);
-            if (exists)
-                throw new Exception("This email is already registered.");
+           
+            var emailExists = (await _customerRepository.GetAllAsync()).Any(x => x.Email == dto.Email);
+            if (emailExists)
+                throw new Exception("Bu e-posta adresi zaten kayıtlı.");
 
+            
+            var identityExists = (await _customerRepository.GetAllAsync()).Any(x => x.IdentityNumber == dto.IdentityNumber);
+            if (identityExists)
+                throw new Exception("Bu TC kimlik numarası ile zaten kayıt var.");
+
+            var phoneExists =(await _customerRepository.GetAllAsync()).Any(x=> x.Phone == dto.Phone);
+            if(phoneExists)
+                throw new Exception("Bu Telefon numarası zaten kayıtlı.");
+
+           
             var customer = new Customer
             {
                 FullName = dto.FullName,
@@ -41,6 +52,7 @@ namespace BankSim.Application.Services
             await _customerRepository.AddAsync(customer);
             await _unitOfWork.SaveChangesAsync();
         }
+
 
         public async Task<string?> LoginAsync(LoginDto dto)
         {

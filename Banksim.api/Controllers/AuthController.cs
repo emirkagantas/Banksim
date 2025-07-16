@@ -1,7 +1,7 @@
 ﻿using BankSim.Application.DTOs;
+using BankSim.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-
 
 namespace BankSim.Application.Services
 {
@@ -10,26 +10,49 @@ namespace BankSim.Application.Services
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly ICustomerRepository _customerRepository;
 
-        public AuthController(IAuthService authService)
+        public AuthController(
+            IAuthService authService,
+            ICustomerRepository customerRepository)
         {
             _authService = authService;
+            _customerRepository = customerRepository;
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterDto dto)
+        public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
+            
+            if (dto.Password != dto.ConfirmPassword)
+                throw new Exception("Şifreler uyuşmuyor.");
+
             await _authService.RegisterAsync(dto);
-            return Ok("Registration successful.");
+            return Ok(new { message = "Kayıt başarılı. Şimdi giriş yapabilirsiniz!" });
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginDto dto)
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
             var token = await _authService.LoginAsync(dto);
             if (token == null)
-                return Unauthorized("Invalid login.");
+                return Unauthorized(new { message = "Geçersiz e-posta veya şifre." });
+
             return Ok(new { token });
+        }
+
+        [HttpGet("email-exists")]
+        public async Task<IActionResult> EmailExists([FromQuery] string email)
+        {
+            var exists = (await _customerRepository.GetAllAsync()).Any(x => x.Email == email);
+            return Ok(new { exists });
+        }
+
+        [HttpGet("identitynumber-exists")]
+        public async Task<IActionResult> IdentityNumberExists([FromQuery] string identityNumber)
+        {
+            var exists = (await _customerRepository.GetAllAsync()).Any(x => x.IdentityNumber == identityNumber);
+            return Ok(new { exists });
         }
     }
 }

@@ -28,8 +28,11 @@ namespace BankSim.Infrastructure.Repositories
 
         public async Task<Account?> GetByIdAsync(int id)
         {
-            return await _context.Accounts.FindAsync(id);
+            return await _context.Accounts
+                .Include(a => a.Customer)
+                .FirstOrDefaultAsync(a => a.Id == id);
         }
+
 
         public async Task<Account?> GetByIbanAsync(string iban)
         {

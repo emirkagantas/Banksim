@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -28,18 +29,21 @@ namespace BankSim.Ui.Controllers
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             var token = HttpContext.Session.GetString("token");
-            if (string.IsNullOrEmpty(token) && !IsAllowAnonymous(context))
+           
+            var actionDescriptor = context.ActionDescriptor as ControllerActionDescriptor;
+            bool allowAnonymous =
+            (actionDescriptor?.MethodInfo.GetCustomAttributes(typeof(AllowAnonymousAttribute), true).Any() ?? false)
+            ||
+            (actionDescriptor?.ControllerTypeInfo.GetCustomAttributes(typeof(AllowAnonymousAttribute), true).Any() ?? false);
+
+
+            if (string.IsNullOrEmpty(token) && !allowAnonymous)
             {
                 context.Result = new RedirectToActionResult("Index", "Login", null);
             }
+
             base.OnActionExecuting(context);
         }
 
- 
-        private bool IsAllowAnonymous(ActionExecutingContext context)
-        {
-            var actionDescriptor = context.ActionDescriptor as Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor;
-            return actionDescriptor?.MethodInfo.GetCustomAttributes(typeof(AllowAnonymousAttribute), true).Any() ?? false;
-        }
     }
 }

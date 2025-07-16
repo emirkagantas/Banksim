@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using FluentValidation; 
+using System.Net;
 using System.Text.Json;
 
 namespace BankSim.API.Middleware
@@ -20,22 +21,25 @@ namespace BankSim.API.Middleware
             {
                 await _next(context);
             }
-            catch (Exception ex)
+            catch (ValidationException ex)
             {
-                _logger.LogError(ex, "Beklenmeyen bir hata oluştu.");
+                var message = string.Join(" ", ex.Errors.Select(e => e.ErrorMessage));
+                _logger.LogWarning(ex, "Doğrulama (Validation) hatası: {Message}", message);
 
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(JsonSerializer.Serialize(new { message }));
+            }
+            catch (Exception ex) 
+            {
+                _logger.LogError(ex, "Hata: {Message}", ex.Message);
 
-                var response = new
-                {
-                    error = "Sunucu hatası. Lütfen tekrar deneyin.",
-                    detail = ex.Message,
-                    stack = ex.StackTrace
-                };
-
-                await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(JsonSerializer.Serialize(new { message = ex.Message }));
             }
         }
+
+
     }
 }

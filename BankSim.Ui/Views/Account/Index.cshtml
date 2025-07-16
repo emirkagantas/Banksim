@@ -1,31 +1,70 @@
-﻿@model List<BankSim.Ui.Models.AccountDto>
+﻿@using BankSim.Ui.Helpers
+@model List<BankSim.Ui.Models.AccountDto>
 @{
     ViewData["Title"] = "Hesaplarım";
+    var userName = User.Identity?.Name ?? "Kullanıcı";
+    var totalBalance = Model?.Sum(a => a.Balance) ?? 0;
 }
-<h2>Hesaplarım</h2>
-@if (Model.Count == 0)
-{
-    <p>Henüz hesabınız yok.</p>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>IBAN</th>
-                <th>Bakiye</th>
-                <th>Para Birimi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var h in Model)
+
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h2 class="fw-bold" style="color: #1565c0;">
+                Hoş geldiniz, <span style="color: #1e88e5;">@userName</span>
+            </h2>
+            <p class="lead" style="color:#003366;">
+                Tüm hesaplarınızı ve bakiyelerinizi görüntüleyin.
+            </p>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h4 class="fw-bold mb-0" style="color:#003366;">Hesaplarım</h4>
+            <a href="/Accounts/Create" class="btn btn-primary rounded-pill fw-semibold px-4" style="background:#009ddc; border:none;">
+                <i class="bi bi-plus-circle me-2"></i>Hesap Ekle
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            @if (Model != null && Model.Count > 0)
             {
-                <tr>
-                    <td>@h.IBAN</td>
-                    <td>@h.Balance</td>
-                    <td>@h.Currency</td>
-                </tr>
+                <div class="table-responsive">
+                    <table class="table table-hover rounded-4 overflow-hidden" style="background:#f6fbff;">
+                        <thead style="background:#e0f2fb;">
+                            <tr style="color:#003366;">
+                                <th>IBAN</th>
+                                <th>Bakiye</th>
+                                <th>Para Birimi</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var account in Model)
+                            {
+                                <tr style="vertical-align:middle;">
+                                    <td class="fw-semibold">@account.IBAN</td>
+                                    <td>@account.Balance.ToString("N2")</td>
+                                    <td>@account.Currency</td>
+                                    <td>
+                                        <a href="/Accounts/Details/@account.Id" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                            <i class="bi bi-search"></i> Detay
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             }
-        </tbody>
-    </table>
-}
+            else
+            {
+                <div class="alert alert-info text-center py-4 rounded-4">
+                    Henüz bir hesabınız yok. <a href="/Accounts/Create" class="fw-semibold" style="color:#009ddc;">Yeni hesap ekleyin!</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

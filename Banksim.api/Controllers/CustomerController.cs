@@ -15,6 +15,7 @@ namespace BankSim.API.Controllers
         {
             _service = service;
         }
+
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAll()
@@ -22,22 +23,26 @@ namespace BankSim.API.Controllers
             var customers = await _service.GetAllAsync();
             return Ok(customers);
         }
+
         [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
             var customer = await _service.GetByIdAsync(id);
             if (customer == null)
-                return NotFound();
+                return NotFound(new { message = "Müşteri bulunamadı." });
             return Ok(customer);
         }
+
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCustomerDto dto)
         {
+          
             await _service.AddAsync(dto);
-            return Ok(dto);
+            return Ok(dto); 
         }
+
         [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCustomerDto dto)
@@ -45,6 +50,7 @@ namespace BankSim.API.Controllers
             await _service.UpdateAsync(id, dto);
             return NoContent();
         }
+
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
@@ -52,11 +58,5 @@ namespace BankSim.API.Controllers
             await _service.DeleteAsync(id);
             return NoContent();
         }
-    
-
     }
-
-
 }
-
-

@@ -1,7 +1,6 @@
 using BankSim.API.Middleware;
 using BankSim.Application.Mapping;
 using BankSim.Application.Services;
-using BankSim.Application.Utils;
 using BankSim.Application.Validation;
 using BankSim.Domain.Interfaces;
 using BankSim.Infrastructure;
@@ -15,10 +14,19 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using QuestPDF.Infrastructure;
 using System.Text;
+using BankSim.API.Extensions;
+using Serilog;
+
+
+
+
 
 
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog((ctx, lc) =>
+    lc.ReadFrom.Configuration(ctx.Configuration));
+
 
 builder.Services.AddDbContext<BankSimDbContext>(options =>
     options.UseSqlServer(
@@ -26,10 +34,14 @@ builder.Services.AddDbContext<BankSimDbContext>(options =>
 );
 
 builder.Services.AddControllers();
+builder.Services.AddCustomModelStateHandler();
+
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateCustomerValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<LoginValidator>();
+
 
 
 
@@ -41,7 +53,8 @@ builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddHttpClient<ExchangeRateService>();
+builder.Services.AddHttpClient<IExchangeRateService, ExchangeRateService>();
+;
 
 
 
@@ -105,9 +118,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<ExceptionMiddleware>();
+app.UseMiddleware<RequestResponseLoggingMiddleware>();
+
 app.UseHttpsRedirection();
 
-app.UseMiddleware<ExceptionMiddleware>();
+
 
 app.UseAuthentication();
 app.UseAuthorization();

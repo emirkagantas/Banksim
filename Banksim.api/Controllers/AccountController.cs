@@ -30,7 +30,7 @@ namespace BankSim.API.Controllers
         {
             var account = await _accountService.GetByIdAsync(id);
             if (account == null)
-                return NotFound();
+                return NotFound(new { message = "Hesap bulunamadı." });
             return Ok(account);
         }
 
@@ -39,7 +39,7 @@ namespace BankSim.API.Controllers
         public async Task<IActionResult> Create([FromBody] CreateAccountDto dto)
         {
             await _accountService.CreateAsync(dto);
-            return Ok("Hesap başarıyla oluşturuldu.");
+            return Ok(new { message = "Hesap başarıyla oluşturuldu." });
         }
 
         [Authorize]
@@ -49,15 +49,15 @@ namespace BankSim.API.Controllers
             await _accountService.DeleteAsync(id);
             return NoContent();
         }
+
         [Authorize]
         [HttpGet("{id}/balance")]
         public async Task<IActionResult> GetBalance(int id)
         {
             var account = await _accountService.GetByIdAsync(id);
             if (account == null)
-                return NotFound("Hesap bulunamadı.");
+                return NotFound(new { message = "Hesap bulunamadı." });
             return Ok(new { account.IBAN, account.Balance });
         }
-
     }
 }

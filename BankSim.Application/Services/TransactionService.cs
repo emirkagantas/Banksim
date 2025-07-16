@@ -1,14 +1,14 @@
 ﻿using AutoMapper;
 using BankSim.Application.DTOs;
-using BankSim.Application.Utils;
 using BankSim.Domain.Entities;
-using BankSim.Domain.Enums.BankSim.Domain.Enums;
+using BankSim.Domain.Enums;
 using BankSim.Domain.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RabbitMQ.Client;
 
 namespace BankSim.Application.Services
 {
@@ -18,20 +18,20 @@ namespace BankSim.Application.Services
         private readonly IAccountRepository _accountRepo;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ExchangeRateService _rateService;
+        private readonly IExchangeRateService _exchangeService;
 
         public TransactionService(
             ITransactionRepository transactionRepo,
             IAccountRepository accountRepo,
             IMapper mapper,
             IUnitOfWork unitOfWork,
-            ExchangeRateService rateService)
+            IExchangeRateService exchangeService)
         {
             _transactionRepo = transactionRepo;
             _accountRepo = accountRepo;
             _mapper = mapper;
             _unitOfWork = unitOfWork;
-            _rateService = rateService;
+            _exchangeService = exchangeService;
         }
 
         public async Task TransferAsync(TransactionDto dto)
@@ -51,7 +51,7 @@ namespace BankSim.Application.Services
 
             decimal rate = 1m;
             if (fromCurrency != toCurrency)
-                rate = await _rateService.GetExchangeRateAsync(fromCurrency, toCurrency);
+                rate = await _exchangeService.GetExchangeRateAsync(fromCurrency, toCurrency);
 
             decimal convertedAmount = dto.Amount * rate;
 
@@ -70,7 +70,57 @@ namespace BankSim.Application.Services
 
             await _transactionRepo.AddAsync(transaction);
             await _unitOfWork.SaveChangesAsync();
+
+
+            var senderCustomer = fromAccount.Customer;
+            var receiverCustomer = toAccount.Customer;
+
+            if (senderCustomer == null || string.IsNullOrEmpty(senderCustomer.Email))
+                throw new Exception("Gönderen kullanıcının e-posta adresi bulunamadı!");
+            if (receiverCustomer == null || string.IsNullOrEmpty(receiverCustomer.Email))
+                throw new Exception("Alıcı kullanıcının e-posta adresi bulunamadı!");
+
+            var emailToSender = new EmailMessageDto
+            {
+                To = senderCustomer.Email,
+                Subject = "Transfer Bildirimi",
+                Body = $"{dto.Amount} TL tutarındaki transferiniz başarıyla gerçekleşti. Alıcı: {receiverCustomer.FullName} ({toAccount.IBAN})"
+            };
+
+            var emailToReceiver = new EmailMessageDto
+            {
+                To = receiverCustomer.Email,
+                Subject = "Hesabınıza Para Geldi!",
+                Body = $"{senderCustomer.FullName} ({fromAccount.IBAN}) hesabından {dto.Amount} TL tutarında bir transfer aldınız."
+            };
+
+            var factory = new ConnectionFactory() { HostName = "localhost" };
+            using var connection = factory.CreateConnection();
+            using var channel = connection.CreateModel();
+
+            channel.QueueDeclare(queue: "transaction.mail",
+                                 durable: false,
+                                 exclusive: false,
+                                 autoDelete: false,
+                                 arguments: null);
+
+           
+            var jsonSender = System.Text.Json.JsonSerializer.Serialize(emailToSender);
+            var bodySender = System.Text.Encoding.UTF8.GetBytes(jsonSender);
+            channel.BasicPublish(exchange: "",
+                                 routingKey: "transaction.mail",
+                                 basicProperties: null,
+                                 body: bodySender);
+
+          
+            var jsonReceiver = System.Text.Json.JsonSerializer.Serialize(emailToReceiver);
+            var bodyReceiver = System.Text.Encoding.UTF8.GetBytes(jsonReceiver);
+            channel.BasicPublish(exchange: "",
+                                 routingKey: "transaction.mail",
+                                 basicProperties: null,
+                                 body: bodyReceiver);
         }
+
 
         private string GetCurrencyCode(Currency currency)
         {

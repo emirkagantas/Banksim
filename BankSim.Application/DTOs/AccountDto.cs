@@ -1,4 +1,4 @@
-﻿using BankSim.Domain.Enums.BankSim.Domain.Enums;
+﻿using BankSim.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;

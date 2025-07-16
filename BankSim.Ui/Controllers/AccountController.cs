@@ -1,33 +1,57 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+﻿using BankSim.Ui.Models;
 using BankSim.Ui.Services;
-using BankSim.Ui.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BankSim.Ui.Controllers
 {
-    public class AccountController : BaseController 
+    
+    public class AccountController : Controller
     {
-        private readonly ApiService _api;
+        private readonly IAccountService _accountService;
 
-        public AccountController(ApiService api)
+        public AccountController(IAccountService accountService)
         {
-            _api = api;
+            _accountService = accountService;
         }
+   
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
-
-            int customerId = GetCustomerIdFromToken();
-
-            var response = await _api.GetAsync($"https://localhost:7291/api/account/customer/{customerId}");
-
-            if (!response.IsSuccessStatusCode)
-                return View(new List<AccountDto>());
-
-            var json = await response.Content.ReadAsStringAsync();
-            var hesaplar = JsonConvert.DeserializeObject<List<AccountDto>>(json);
-
-            return View(hesaplar);
+            var accounts = await _accountService.GetAccountsByUserAsync(User.Identity.Name);
+            return View(accounts);
         }
-    }
-}
+
+      
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var account = await _accountService.GetAccountByIdAsync(id);
+            if (account == null)
+                return NotFound();
+            return View(account);
+        }
+
+            [HttpGet]
+            public IActionResult Create()
+            {
+                return View();
+            }
+
+
+            [HttpPost]
+            [ValidateAntiForgeryToken]
+            public async Task<IActionResult> Create(CreateAccountDto model)
+            {
+                if (!ModelState.IsValid)
+                    return View(model);
+
+                await _accountService.CreateAccountAsync(User.Identity.Name, model);
+                return RedirectToAction(nameof(Index));
+            }
+
+        }
+
+    } 
+

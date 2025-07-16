@@ -2,9 +2,10 @@
 using System.Text.Json;
 
 
-namespace BankSim.Application.Utils
+namespace BankSim.Application.Services
+
 {
-    public class ExchangeRateService
+    public class ExchangeRateService:IExchangeRateService
     {
         private readonly HttpClient _http;
         private readonly IConfiguration _config;
