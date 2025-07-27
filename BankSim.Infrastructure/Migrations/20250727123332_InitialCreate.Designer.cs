@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BankSim.Infrastructure.Migrations
 {
     [DbContext(typeof(BankSimDbContext))]
-    [Migration("20250710222038_AddExchangeRateAndConvertedAmountToTransaction")]
-    partial class AddExchangeRateAndConvertedAmountToTransaction
+    [Migration("20250727123332_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

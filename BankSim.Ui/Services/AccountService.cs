@@ -1,7 +1,5 @@
 ﻿using BankSim.Ui.Models;
-using BankSim.Ui.Services;
 using Newtonsoft.Json;
-
 
 namespace BankSim.Ui.Services
 {
@@ -14,9 +12,10 @@ namespace BankSim.Ui.Services
             _apiService = apiService;
         }
 
-        public async Task<List<AccountDto>> GetAccountsByUserAsync(string userName)
+        // Kullanıcıya göre hesapları getir (id ile!)
+        public async Task<List<AccountDto>> GetAccountsByCustomerIdAsync(int customerId)
         {
-            var response = await _apiService.GetAsync($"/api/accounts/user/{userName}");
+            var response = await _apiService.GetAsync($"/api/account/customer/{customerId}");
             if (!response.IsSuccessStatusCode)
                 return new List<AccountDto>();
 
@@ -24,9 +23,10 @@ namespace BankSim.Ui.Services
             return JsonConvert.DeserializeObject<List<AccountDto>>(json) ?? new List<AccountDto>();
         }
 
-        public async Task<AccountDto> GetAccountByIdAsync(int id)
+        // Hesap id'sine göre getir
+        public async Task<AccountDto?> GetAccountByIdAsync(int id)
         {
-            var response = await _apiService.GetAsync($"/api/accounts/{id}");
+            var response = await _apiService.GetAsync($"/api/account/{id}");
             if (!response.IsSuccessStatusCode)
                 return null;
 
@@ -34,10 +34,10 @@ namespace BankSim.Ui.Services
             return JsonConvert.DeserializeObject<AccountDto>(json);
         }
 
-        public async Task CreateAccountAsync(string userName, CreateAccountDto dto)
+        // Yeni hesap oluştur
+        public async Task CreateAccountAsync(CreateAccountDto dto)
         {
-            
-            var response = await _apiService.PostAsync("/api/accounts", dto);
+            var response = await _apiService.PostAsync("/api/account", dto);
 
             if (!response.IsSuccessStatusCode)
             {

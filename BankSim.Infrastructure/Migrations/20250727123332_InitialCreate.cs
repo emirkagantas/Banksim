@@ -36,7 +36,8 @@ namespace BankSim.Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     IBAN = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Balance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    CustomerId = table.Column<int>(type: "int", nullable: false)
+                    CustomerId = table.Column<int>(type: "int", nullable: false),
+                    Currency = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -58,7 +59,9 @@ namespace BankSim.Infrastructure.Migrations
                     ToAccountId = table.Column<int>(type: "int", nullable: false),
                     FromAccountId = table.Column<int>(type: "int", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    TransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ExchangeRate = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    ConvertedAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
                 },
                 constraints: table =>
                 {

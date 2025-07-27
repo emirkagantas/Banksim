@@ -59,5 +59,16 @@ namespace BankSim.API.Controllers
                 return NotFound(new { message = "Hesap bulunamadı." });
             return Ok(new { account.IBAN, account.Balance });
         }
+
+        [Authorize]
+        [HttpGet("iban/{iban}")]
+        public async Task<IActionResult> GetByIban(string iban)
+        {
+            var account = await _accountService.GetByIbanAsync(iban);
+            if (account == null)
+                return NotFound();
+            return Ok(account);
+        }
+
     }
 }

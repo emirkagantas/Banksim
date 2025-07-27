@@ -19,39 +19,47 @@ namespace BankSim.Ui.Services
             _baseUrl = configuration["ApiBaseUrl"];
         }
 
-        private void SetAuthorizationHeader()
-        {
-            var token = GetToken();
-            if (!string.IsNullOrEmpty(token))
-                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            else
-                _client.DefaultRequestHeaders.Authorization = null;
-        }
 
-        public string GetToken()
-        {
-            return _http.HttpContext?.Session.GetString("token") ?? "";
-        }
+
 
         public async Task<HttpResponseMessage> GetAsync(string endpoint)
         {
-            SetAuthorizationHeader();
+        
             if (_baseUrl == null)
                 throw new Exception("API base URL bulunamadı.");
-            return await _client.GetAsync(_baseUrl + endpoint);
+
+            var request = new HttpRequestMessage(HttpMethod.Get, _baseUrl + endpoint);
+
+            var token = _http.HttpContext?.Request.Cookies["token"];
+            if (!string.IsNullOrEmpty(token))
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            return await _client.SendAsync(request);
         }
 
         public async Task<HttpResponseMessage> PostAsync<T>(string endpoint, T data)
         {
-            SetAuthorizationHeader();
+            Console.WriteLine("POST edilen veri: " + JsonConvert.SerializeObject(data));
             if (_baseUrl == null)
                 throw new Exception("API base URL bulunamadı.");
+
+            var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl + endpoint);
+
+            var token = _http.HttpContext?.Request.Cookies["token"];
+            if (!string.IsNullOrEmpty(token))
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
             var json = JsonConvert.SerializeObject(data);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            return await _client.PostAsync(_baseUrl + endpoint, content);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            return await _client.SendAsync(request);
         }
 
-        
+
         public async Task<string?> GetErrorMessageAsync(HttpResponseMessage response)
         {
             if (response.Content == null)
@@ -64,7 +72,7 @@ namespace BankSim.Ui.Services
             }
             catch
             {
-                return errorString; 
+                return errorString;
             }
         }
 
@@ -72,5 +80,8 @@ namespace BankSim.Ui.Services
         {
             public string? message { get; set; }
         }
+        
+
+        }
     }
-}
+

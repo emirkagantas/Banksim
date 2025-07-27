@@ -131,27 +131,98 @@ namespace BankSim.Application.Services
         public async Task<List<TransactionDto>> GetByAccountIdAsync(int accountId)
         {
             var list = await _transactionRepo.GetByAccountIdAsync(accountId);
-            return _mapper.Map<List<TransactionDto>>(list);
+
+            
+            var accountIds = list
+                .SelectMany(t => new[] { t.FromAccountId, t.ToAccountId })
+                .Distinct()
+                .ToList();
+
+            var accounts = await _accountRepo.GetByIdsAsync(accountIds); 
+            var accountDict = accounts.ToDictionary(a => a.Id, a => a);
+
+            var dtos = list.Select(t =>
+            {
+                var fromAccount = accountDict.GetValueOrDefault(t.FromAccountId);
+                var toAccount = accountDict.GetValueOrDefault(t.ToAccountId);
+
+                return new TransactionDto
+                {
+                    FromAccountId = t.FromAccountId,
+                    FromAccountName = fromAccount?.Customer?.FullName ?? t.FromAccountId.ToString(),
+                    ToAccountId = t.ToAccountId,
+                    ToAccountName = toAccount?.Customer?.FullName ?? t.ToAccountId.ToString(),
+                    Amount = t.Amount,
+                    TransactionDate = t.TransactionDate
+                };
+            }).ToList();
+
+            return dtos;
         }
 
         public async Task<List<TransactionDto>> GetByFilterAsync(TransactionFilterDto filter)
         {
-            var all = await _transactionRepo.GetByAccountIdAsync(filter.AccountId);
+            // 1) Tüm işlem kayıtlarını çek
+            var all = await _transactionRepo.GetByAccountIdAsync(filter.accountId);
+            Console.WriteLine($"[Filter] AccountId={filter.accountId}, total transactions: {all.Count}");
+
+            // 2) Tarih filtrele
+            DateTime? startDateOnly = filter.startDate?.Date;
+            DateTime? endDateOnly = filter.endDate?.Date;
+
             var filtered = all
-                .Where(t => t.TransactionDate >= filter.StartDate && t.TransactionDate <= filter.EndDate)
+                .Where(t =>
+                    (!startDateOnly.HasValue || t.TransactionDate.Date >= startDateOnly.Value) &&
+                    (!endDateOnly.HasValue || t.TransactionDate.Date <= endDateOnly.Value)
+                )
                 .OrderByDescending(t => t.TransactionDate)
                 .ToList();
 
-            return _mapper.Map<List<TransactionDto>>(filtered);
+            // 3) Hesap isimlerini doldur (aynı diğer methoddaki gibi!)
+            var accountIds = filtered
+                .SelectMany(t => new[] { t.FromAccountId, t.ToAccountId })
+                .Distinct()
+                .ToList();
+
+            var accounts = await _accountRepo.GetByIdsAsync(accountIds);
+            var accountDict = accounts.ToDictionary(a => a.Id, a => a);
+
+            var dtos = filtered.Select(t =>
+            {
+                var fromAccount = accountDict.GetValueOrDefault(t.FromAccountId);
+                var toAccount = accountDict.GetValueOrDefault(t.ToAccountId);
+
+                return new TransactionDto
+                {
+                    FromAccountId = t.FromAccountId,
+                    FromAccountName = fromAccount?.Customer?.FullName ?? t.FromAccountId.ToString(),
+                    ToAccountId = t.ToAccountId,
+                    ToAccountName = toAccount?.Customer?.FullName ?? t.ToAccountId.ToString(),
+                    Amount = t.Amount,
+                    TransactionDate = t.TransactionDate
+                };
+            }).ToList();
+
+            return dtos;
         }
+
+
+
+
 
         public async Task<List<TransactionExportDto>> GetExportListAsync(TransactionFilterDto filter)
         {
-            var filtered = await _transactionRepo.GetByAccountIdAsync(filter.AccountId);
-            filtered = filtered
-                .Where(t => t.TransactionDate >= filter.StartDate && t.TransactionDate <= filter.EndDate)
-                .OrderByDescending(t => t.TransactionDate)
-                .ToList();
+            var all = await _transactionRepo.GetByAccountIdAsync(filter.accountId);
+
+            IEnumerable<Transaction> filtered = all;
+
+            if (filter.startDate.HasValue)
+                filtered = filtered.Where(t => t.TransactionDate >= filter.startDate.Value);
+
+            if (filter.endDate.HasValue)
+                filtered = filtered.Where(t => t.TransactionDate <= filter.endDate.Value);
+
+            filtered = filtered.OrderByDescending(t => t.TransactionDate);
 
             var accountIds = filtered
                 .SelectMany(t => new[] { t.FromAccountId, t.ToAccountId })
@@ -181,6 +252,7 @@ namespace BankSim.Application.Services
             }
             return exportList;
         }
+
 
 
 

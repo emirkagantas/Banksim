@@ -1,39 +1,62 @@
-﻿using BankSim.Ui.Services;
+﻿using BankSim.Ui.Controllers;
+using BankSim.Ui.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
-namespace BankSim.Ui.Controllers
+[AllowAnonymous]
+public class LoginController : BaseController
 {
-    [AllowAnonymous]
-    public class LoginController : BaseController
+    private readonly IApiService _api;
+
+    public LoginController(IApiService api)
     {
-        private readonly IApiService _api;
+        _api = api;
+    }
 
-        public LoginController(IApiService api)
+    public IActionResult Index()
+    {
+        if (Request.Cookies["token"] != null)
+            return RedirectToAction("Index", "Dashboard");
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Index(string email, string password)
+    {
+        var response = await _api.PostAsync("/api/auth/login", new { email, password });
+
+        if (!response.IsSuccessStatusCode)
         {
-            _api = api;
+            ViewBag.Hata = "Giriş başarısız!";
+            return View();
         }
 
-
-        public IActionResult Index() => View();
-
-        [HttpPost]
-        public async Task<IActionResult> Index(string email, string password)
+        var json = await response.Content.ReadAsStringAsync();
+        var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+        if (dict == null || !dict.ContainsKey("token"))
         {
-            var response = await _api.PostAsync("/api/auth/login", new { email, password });
-
-            if (!response.IsSuccessStatusCode)
-            {
-                ViewBag.Hata = "Giriş başarısız!";
-                return View();
-            }
-
-            var json = await response.Content.ReadAsStringAsync();
-            var token = JsonConvert.DeserializeObject<Dictionary<string, string>>(json)!["token"];
-            HttpContext.Session.SetString("token", token);
-
-            return RedirectToAction("Index", "Account");
+            ViewBag.Hata = "Giriş başarısız! (token yok)";
+            return View();
         }
+        var token = dict["token"];
+        var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(token);
+        var expClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "exp")?.Value;
+
+        DateTimeOffset expires = DateTimeOffset.UtcNow.AddHours(1); 
+        if (long.TryParse(expClaim, out var unixExp))
+            expires = DateTimeOffset.FromUnixTimeSeconds(unixExp);
+
+
+        Response.Cookies.Append("token", token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure =  true,
+            SameSite = SameSiteMode.None,
+            Expires = expires.UtcDateTime
+        });
+
+        return RedirectToAction("Index", "Dashboard");
     }
 }

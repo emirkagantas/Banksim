@@ -1,3 +1,4 @@
+using BankSim.API.Extensions;
 using BankSim.API.Middleware;
 using BankSim.Application.Mapping;
 using BankSim.Application.Services;
@@ -6,6 +7,7 @@ using BankSim.Domain.Interfaces;
 using BankSim.Infrastructure;
 using BankSim.Infrastructure.Persistence;
 using BankSim.Infrastructure.Repositories;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -13,9 +15,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using QuestPDF.Infrastructure;
-using System.Text;
-using BankSim.API.Extensions;
 using Serilog;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 
 
@@ -33,9 +36,29 @@ builder.Services.AddDbContext<BankSimDbContext>(options =>
         builder.Configuration.GetConnectionString("BankSimConnection"))
 );
 
-builder.Services.AddControllers();
-builder.Services.AddCustomModelStateHandler();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
+  
+   
 
+   builder.Services.AddCustomModelStateHandler();
+// En baþa:
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy =>
+        {
+            policy.WithOrigins("https://localhost:7284") 
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials(); 
+                   
+        });
+});
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateCustomerValidator>();
@@ -118,6 +141,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowFrontend");
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseMiddleware<RequestResponseLoggingMiddleware>();
 

@@ -26,22 +26,45 @@
                         <li class="nav-item">
                             <a class="nav-link fw-semibold" href="/" style="color:#003366; font-size:1.13rem;">Anasayfa</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="btn rounded-pill fw-bold px-4 ms-lg-2"
-                               href="/Login/Index"
-                               style="background:#009ddc; color:#fff; border:none; font-size:1.09rem;">
-                                Giriş Yap
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn rounded-pill fw-bold px-4 ms-lg-2"
-                               href="/Register/Index"
-                               style="background: #fff; color:#009ddc; border: 2px solid #009ddc; font-size:1.09rem;">
-                                Kayıt Ol
-                            </a>
-                        </li>
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <span class="nav-link fw-bold" style="color: #009ddc; font-size:1.1rem;">
+                                    <i class="bi bi-person-circle me-1"></i>
+                                    @User.Identity.Name
+                                </span>
+                            </li>
+                            <li class="nav-item">
+                                <form asp-controller="Logout" asp-action="Index" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit"
+                                            class="btn rounded-pill fw-bold px-4 ms-lg-2"
+                                            style="background:#ff4f4f; color:#fff; border:none; font-size:1.09rem;">
+                                        Çıkış Yap
+                                    </button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="btn rounded-pill fw-bold px-4 ms-lg-2"
+                                   href="/Login/Index"
+                                   style="background:#009ddc; color:#fff; border:none; font-size:1.09rem;">
+                                    Giriş Yap
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn rounded-pill fw-bold px-4 ms-lg-2"
+                                   href="/Register/Index"
+                                   style="background: #fff; color:#009ddc; border: 2px solid #009ddc; font-size:1.09rem;">
+                                    Kayıt Ol
+                                </a>
+                            </li>
+                        }
                     </ul>
                 </div>
+
             </div>
         </nav>
     </header>

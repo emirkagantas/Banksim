@@ -34,8 +34,8 @@ namespace BankSim.Application.Utils
                 worksheet.Cell(row, 4).Value = t.ToFullName;
                 worksheet.Cell(row, 5).Value = t.Amount;
                 worksheet.Cell(row, 6).Value = t.TransactionDate.ToString("yyyy-MM-dd HH:mm");
-                worksheet.Cell(row, 5).Value = t.ExchangeRate.HasValue ? t.ExchangeRate.Value.ToString("F4") : "";
-                worksheet.Cell(row, 6).Value = t.ConvertedAmount.HasValue ? t.ConvertedAmount.Value.ToString("F2") : "";
+                worksheet.Cell(row, 7).Value = t.ExchangeRate.HasValue ? t.ExchangeRate.Value.ToString("F4") : "";
+                worksheet.Cell(row, 8).Value = t.ConvertedAmount.HasValue ? t.ConvertedAmount.Value.ToString("F2") : "";
                 row++;
             }
 

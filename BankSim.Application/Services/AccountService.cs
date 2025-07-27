@@ -2,6 +2,7 @@
 using BankSim.Application.DTOs;
 using BankSim.Application.Utils;
 using BankSim.Domain.Entities;
+using BankSim.Domain.Enums;
 using BankSim.Domain.Interfaces;
 
 namespace BankSim.Application.Services
@@ -34,6 +35,12 @@ namespace BankSim.Application.Services
             return _mapper.Map<AccountDto?>(account);
         }
 
+        public async Task<AccountDto?> GetByIbanAsync(string iban)
+        {
+            var account = await _repository.GetByIbanAsync(iban);
+            return _mapper.Map<AccountDto?>(account);
+        }
+
         public async Task CreateAsync(CreateAccountDto dto)
         {
             var customer = await _customerRepository.GetByIdAsync(dto.CustomerId);
@@ -43,7 +50,8 @@ namespace BankSim.Application.Services
             {
                 CustomerId = dto.CustomerId,
                 IBAN = IbanGenerator.Generate(),
-                Balance = 0
+                Balance = 0,
+                Currency = (Currency)dto.Currency
             };
 
             await _repository.AddAsync(account);
@@ -66,6 +74,12 @@ namespace BankSim.Application.Services
             var account = await _repository.GetByIdAsync(accountId);
             return account != null && account.Customer?.Email == userEmail;
         }
+        public async Task<string> GetAccountOwnerNameAsync(int accountId)
+        {
+            var account = await _repository.GetByIdAsync(accountId);
+            return account?.Customer?.FullName ?? "kullanici";
+        }
+
 
     }
 }

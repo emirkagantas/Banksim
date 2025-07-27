@@ -1,70 +1,62 @@
-﻿@using BankSim.Ui.Helpers
-@model List<BankSim.Ui.Models.AccountDto>
-@{
+﻿@{
     ViewData["Title"] = "Hesaplarım";
-    var userName = User.Identity?.Name ?? "Kullanıcı";
-    var totalBalance = Model?.Sum(a => a.Balance) ?? 0;
+    var hesaplar = ViewBag.Accounts as List<AccountDto>;
+    int hesapSayisi = (int)ViewBag.AccountCount;
 }
 
-<div class="container py-5">
-    <div class="row mb-4">
-        <div class="col-12 text-center">
-            <h2 class="fw-bold" style="color: #1565c0;">
-                Hoş geldiniz, <span style="color: #1e88e5;">@userName</span>
-            </h2>
-            <p class="lead" style="color:#003366;">
-                Tüm hesaplarınızı ve bakiyelerinizi görüntüleyin.
-            </p>
-        </div>
-    </div>
+<!-- Bootstrap Icons CDN (ikonlu buton için, daha önce yoksa ekle) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <div class="row mb-3">
-        <div class="col-12 d-flex justify-content-between align-items-center">
-            <h4 class="fw-bold mb-0" style="color:#003366;">Hesaplarım</h4>
-            <a href="/Accounts/Create" class="btn btn-primary rounded-pill fw-semibold px-4" style="background:#009ddc; border:none;">
-                <i class="bi bi-plus-circle me-2"></i>Hesap Ekle
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="fw-bold" style="color:#003366;">Tüm Hesaplarım (@hesapSayisi)</h3>
+        <div>
+            <a asp-controller="Account" asp-action="Transfer" class="btn btn-warning rounded-3 me-2">
+                <i class="bi bi-arrow-left-right me-1"></i> Para Transferi
+            </a>
+            <a asp-controller="Account" asp-action="Create" class="btn btn-success rounded-3 me-2">
+                + Hesap Aç
+            </a>
+            <a href="@Url.Action("Index", "Dashboard")" class="btn btn-outline-primary rounded-3">
+                ← Ana Sayfa
             </a>
         </div>
     </div>
-
     <div class="row">
-        <div class="col-12">
-            @if (Model != null && Model.Count > 0)
+        @if (hesaplar != null && hesaplar.Count > 0)
+        {
+            foreach (var h in hesaplar)
             {
-                <div class="table-responsive">
-                    <table class="table table-hover rounded-4 overflow-hidden" style="background:#f6fbff;">
-                        <thead style="background:#e0f2fb;">
-                            <tr style="color:#003366;">
-                                <th>IBAN</th>
-                                <th>Bakiye</th>
-                                <th>Para Birimi</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var account in Model)
-                            {
-                                <tr style="vertical-align:middle;">
-                                    <td class="fw-semibold">@account.IBAN</td>
-                                    <td>@account.Balance.ToString("N2")</td>
-                                    <td>@account.Currency</td>
-                                    <td>
-                                        <a href="/Accounts/Details/@account.Id" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                                            <i class="bi bi-search"></i> Detay
-                                        </a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                <div class="col-md-6 mb-3">
+                    <a href="@Url.Action("Details", "Account", new { id = h.Id })" style="text-decoration:none;">
+                        <div class="card shadow rounded-4 border-0 hover-shadow" style="transition:box-shadow .3s;">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="card-title mb-0" style="color:#0064c9;">@h.IBAN</h5>
+                                        <span class="fw-light fs-6" style="color:#888;">@h.Currency</span>
+                                    </div>
+                                    <div class="fs-4 fw-bold" style="color:#003366;">
+                                        @h.Balance ₺
+                                    </div>
+                                </div>
+                                <div class="mt-2 text-secondary">
+                                    <span>Hesap No: @h.Id</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
             }
-            else
-            {
-                <div class="alert alert-info text-center py-4 rounded-4">
-                    Henüz bir hesabınız yok. <a href="/Accounts/Create" class="fw-semibold" style="color:#009ddc;">Yeni hesap ekleyin!</a>
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="alert alert-warning text-center py-4 fs-5">
+                    Hiç hesabınız yok.
+                    <a asp-controller="Account" asp-action="Create" class="btn btn-success ms-2 px-3 rounded-3">Hesap Aç</a>
                 </div>
-            }
-        </div>
+            </div>
+        }
     </div>
 </div>

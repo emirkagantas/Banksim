@@ -14,6 +14,8 @@ namespace BankSim.Application.Services
         Task CreateAsync(CreateAccountDto dto);
         Task DeleteAsync(int id);
         Task<bool> IsAccountBelongsToUser(int accountId, string userEmail);
+        Task<string> GetAccountOwnerNameAsync(int accountId);
+        Task<AccountDto?> GetByIbanAsync(string iban);
 
     }
 }

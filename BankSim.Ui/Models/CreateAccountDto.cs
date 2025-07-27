@@ -2,6 +2,8 @@
 {
     public class CreateAccountDto
     {
-        public string? Currency { get; set; }
+        public int CustomerId { get; set; }
+        public int Currency { get; set; }
+    
     }
 }

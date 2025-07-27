@@ -41,18 +41,6 @@ namespace BankSim.Application.Services
             return Ok(new { token });
         }
 
-        [HttpGet("email-exists")]
-        public async Task<IActionResult> EmailExists([FromQuery] string email)
-        {
-            var exists = (await _customerRepository.GetAllAsync()).Any(x => x.Email == email);
-            return Ok(new { exists });
-        }
-
-        [HttpGet("identitynumber-exists")]
-        public async Task<IActionResult> IdentityNumberExists([FromQuery] string identityNumber)
-        {
-            var exists = (await _customerRepository.GetAllAsync()).Any(x => x.IdentityNumber == identityNumber);
-            return Ok(new { exists });
-        }
+        
     }
 }

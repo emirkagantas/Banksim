@@ -3,18 +3,22 @@ using BankSim.Application.Services;
 using BankSim.Application.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 namespace BankSim.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class TransactionController : ControllerBase
     {
         private readonly ITransactionService _transactionService;
+        private readonly IAccountService _accountService;
 
-        public TransactionController(ITransactionService transactionService)
+        public TransactionController(ITransactionService transactionService, IAccountService accountService)
         {
             _transactionService = transactionService;
+            _accountService = accountService;
         }
 
         [Authorize]
@@ -49,6 +53,7 @@ namespace BankSim.API.Controllers
         [HttpPost("filter")]
         public async Task<IActionResult> GetByFilter([FromBody] TransactionFilterDto filter)
         {
+
             var list = await _transactionService.GetByFilterAsync(filter);
             return Ok(list);
         }
@@ -59,9 +64,20 @@ namespace BankSim.API.Controllers
         {
             var exportList = await _transactionService.GetExportListAsync(filter);
             var fileContent = ExcelExportHelper.ExportTransactions(exportList);
-            var fileName = FileNameHelper.BuildExportFileName(exportList.FirstOrDefault()?.FromFullName, "xlsx");
+
+          
+          
+            var customerName = await _accountService.GetAccountOwnerNameAsync(filter.accountId);
+            var fileName = FileNameHelper.BuildExportFileName(customerName, "xlsx");
+
+
+        
+
             return File(fileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
+
+
+
 
         [Authorize]
         [HttpPost("export-pdf")]
@@ -73,8 +89,12 @@ namespace BankSim.API.Controllers
             if (fileContent == null || fileContent.Length == 0)
                 return StatusCode(500, new { message = "PDF içeriği boş döndü." });
 
-            var fileName = FileNameHelper.BuildExportFileName(exportList.FirstOrDefault()?.FromFullName, "pdf");
+            // Doğru dosya ismi için müşteri adını AccountService'den çek!
+            var customerName = await _accountService.GetAccountOwnerNameAsync(filter.accountId);
+            var fileName = FileNameHelper.BuildExportFileName(customerName, "pdf");
+
             return File(fileContent, "application/pdf", fileName);
         }
+
     }
 }

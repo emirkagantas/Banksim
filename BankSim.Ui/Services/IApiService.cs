@@ -7,8 +7,6 @@ namespace BankSim.Ui.Services
     {
         Task<HttpResponseMessage> GetAsync(string endpoint);
         Task<HttpResponseMessage> PostAsync<T>(string endpoint, T data);
-        string GetToken();
         Task<string?> GetErrorMessageAsync(HttpResponseMessage response);
-
     }
 }

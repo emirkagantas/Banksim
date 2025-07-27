@@ -1,0 +1,124 @@
+﻿@{
+    ViewData["Title"] = "Hesap Detayı";
+    var hesap = ViewBag.Account as AccountDto;
+    var transferler = ViewBag.Transfers as List<TransactionDto>;
+    int hesapId = (int)ViewBag.AccountId;
+    int totalCount = (int)ViewBag.TotalCount;
+    int page = (int)ViewBag.Page;
+    int pageSize = (int)ViewBag.PageSize;
+    int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+    string defaultSd = ViewBag.DefaultStartDate as string ?? DateTime.Today.AddMonths(-1).ToString("yyyy-MM-dd");
+    string defaultEd = ViewBag.DefaultEndDate as string ?? DateTime.Today.ToString("yyyy-MM-dd");
+
+    string selSd = ViewBag.StartDateString as string ?? defaultSd;
+    string selEd = ViewBag.EndDateString as string ?? defaultEd;
+}
+
+<div class="container mt-4">
+    <div class="mb-3">
+        <a asp-controller="Account"
+           asp-action="Index"
+           class="btn btn-outline-primary rounded-3">
+            ← Tüm Hesaplarım
+        </a>
+    </div>
+
+    @if (hesap != null)
+    {
+        <div class="card shadow rounded-4 p-4 mb-4">
+            <h4 class="mb-1" style="color:#0064c9;">@hesap.IBAN</h4>
+            <div>Bakiye: <b>@hesap.Balance ₺</b> | Döviz: <b>@hesap.Currency</b></div>
+            <div>Hesap No: <b>@hesap.Id</b></div>
+        </div>
+
+        <!-- Tarih aralığı filtre formu (server-side) -->
+        <form class="row g-2 mb-3" method="get" asp-controller="Account" asp-action="Details" asp-route-id="@hesapId">
+            <div class="col-auto">
+                <label>Tarih Aralığı:</label>
+            </div>
+            <div class="col-auto">
+                <input name="startDate" type="date" class="form-control" value="@selSd" />
+            </div>
+            <div class="col-auto">
+                <input name="endDate" type="date" class="form-control" value="@selEd" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-primary">Filtrele</button>
+            </div>
+        </form>
+
+        <div class="mb-2 text-end d-flex gap-2">
+            <!-- Excel Export Formu -->
+            <form method="post" asp-controller="Account" asp-action="ExportExcel" class="d-inline">
+                <input type="hidden" name="id" value="@hesapId" />
+                <input type="hidden" name="startDate" value="@selSd" />
+                <input type="hidden" name="endDate" value="@selEd" />
+                <button type="submit" class="btn btn-success me-2 rounded-3">Excel’e Aktar</button>
+            </form>
+            <!-- PDF Export Formu -->
+            <form method="post" asp-controller="Account" asp-action="ExportPdf" class="d-inline">
+                <input type="hidden" name="id" value="@hesapId" />
+                <input type="hidden" name="startDate" value="@selSd" />
+                <input type="hidden" name="endDate" value="@selEd" />
+                <button type="submit" class="btn btn-danger rounded-3">PDF’e Aktar</button>
+            </form>
+        </div>
+
+        <h5 class="mb-3 mt-4 fw-bold">Transferler</h5>
+        @if (transferler != null && transferler.Count > 0)
+        {
+            <table class="table table-bordered table-hover rounded">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Gönderen</th>
+                        <th>Alıcı</th>
+                        <th>Tutar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var tx in transferler)
+                    {
+                        <tr>
+                            <td>@tx.TransactionDate.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td>@tx.FromAccountName</td>
+                            <td>@tx.ToAccountName</td>
+                            <td>@tx.Amount ₺</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <nav>
+                <ul class="pagination justify-content-center">
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == page ? "active" : "")">
+                            <a class="page-link"
+                               asp-controller="Account"
+                               asp-action="Details"
+                               asp-route-id="@hesapId"
+                               asp-route-page="@i"
+                               asp-route-startDate="@selSd"
+                               asp-route-endDate="@selEd">
+                                @i
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+            <div class="text-secondary fs-6">
+                Toplam @totalCount işlem, @transferler.Count tanesi gösteriliyor.
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">Transfer işlemi bulunamadı.</div>
+        }
+    }
+    else
+    {
+        <div class="alert alert-danger">Hesap bulunamadı.</div>
+    }
+</div>
