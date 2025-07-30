@@ -1,0 +1,16 @@
+﻿@{
+    ViewData["Title"] = "Fatura Sorgula";
+}
+<h2>Fatura Sorgula</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">@TempData["Message"]</div>
+}
+
+<form asp-action="List" method="post" class="mb-3">
+    <div class="input-group">
+        <input type="text" name="tckn" class="form-control" placeholder="TCKN giriniz" required />
+        <button type="submit" class="btn btn-primary">Faturaları Listele</button>
+    </div>
+</form>

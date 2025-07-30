@@ -34,6 +34,7 @@ builder.Services.AddHttpClient<IApiService, ApiService>(client =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSession();
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 
 
 

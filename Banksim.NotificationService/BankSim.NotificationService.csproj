@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Banksim.api\BankSim.API.csproj" />
     <ProjectReference Include="..\BankSim.Application\BankSim.Application.csproj" />
   </ItemGroup>
 

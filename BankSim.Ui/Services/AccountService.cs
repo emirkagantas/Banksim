@@ -12,7 +12,7 @@ namespace BankSim.Ui.Services
             _apiService = apiService;
         }
 
-        // Kullanıcıya göre hesapları getir (id ile!)
+     
         public async Task<List<AccountDto>> GetAccountsByCustomerIdAsync(int customerId)
         {
             var response = await _apiService.GetAsync($"/api/account/customer/{customerId}");
@@ -23,7 +23,7 @@ namespace BankSim.Ui.Services
             return JsonConvert.DeserializeObject<List<AccountDto>>(json) ?? new List<AccountDto>();
         }
 
-        // Hesap id'sine göre getir
+  
         public async Task<AccountDto?> GetAccountByIdAsync(int id)
         {
             var response = await _apiService.GetAsync($"/api/account/{id}");
@@ -34,7 +34,7 @@ namespace BankSim.Ui.Services
             return JsonConvert.DeserializeObject<AccountDto>(json);
         }
 
-        // Yeni hesap oluştur
+       
         public async Task CreateAccountAsync(CreateAccountDto dto)
         {
             var response = await _apiService.PostAsync("/api/account", dto);

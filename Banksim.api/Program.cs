@@ -76,12 +76,21 @@ builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddHttpClient<IExchangeRateService, ExchangeRateService>();
-;
+builder.Services.AddHttpClient("InvoiceAPI", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7035"); 
+    client.DefaultRequestHeaders.Add("X-Internal-Api-Key", "6cQ2nb2sRD8fyUWF");
+});
+
+
 
 
 
 builder.Services.AddAutoMapper(typeof(CustomerProfile));
+builder.Services.AddAutoMapper(typeof(AccountProfile));
+builder.Services.AddAutoMapper(typeof(TransactionProfile));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -135,11 +144,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
 
 app.UseCors("AllowFrontend");
 app.UseMiddleware<ExceptionMiddleware>();
