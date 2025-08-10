@@ -1,23 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Configuration;
 
 namespace BankSim.Ui.Controllers
 {
     public class BaseController : Controller
     {
-       
-        protected string? CurrentUserName => User?.Identity?.Name;
+        protected readonly IConfiguration _configuration;
 
-    
-        protected int CurrentUserId
+        public BaseController(IConfiguration configuration)
         {
-            get
-            {
-                var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (int.TryParse(idClaim, out var id))
-                    return id;
-                return 0;
-            }
+            _configuration = configuration;
+        }
+
+        public override void OnActionExecuting(ActionExecutingContext context)
+        {
+            ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
+            base.OnActionExecuting(context);
         }
     }
 }

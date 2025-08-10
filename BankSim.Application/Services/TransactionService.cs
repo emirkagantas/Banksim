@@ -162,11 +162,11 @@ namespace BankSim.Application.Services
 
         public async Task<List<TransactionDto>> GetByFilterAsync(TransactionFilterDto filter)
         {
-            // 1) Tüm işlem kayıtlarını çek
+        
             var all = await _transactionRepo.GetByAccountIdAsync(filter.accountId);
             Console.WriteLine($"[Filter] AccountId={filter.accountId}, total transactions: {all.Count}");
 
-            // 2) Tarih filtrele
+          
             DateTime? startDateOnly = filter.startDate?.Date;
             DateTime? endDateOnly = filter.endDate?.Date;
 
@@ -178,7 +178,7 @@ namespace BankSim.Application.Services
                 .OrderByDescending(t => t.TransactionDate)
                 .ToList();
 
-            // 3) Hesap isimlerini doldur (aynı diğer methoddaki gibi!)
+       
             var accountIds = filtered
                 .SelectMany(t => new[] { t.FromAccountId, t.ToAccountId })
                 .Distinct()

@@ -8,7 +8,9 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BankSim.Ui.styles.css" asp-append-version="true" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <script>
+        window.API_BASE_URL = "https://localhost:7291"; 
+    </script>
 </head>
 <body>
     <header>
@@ -26,50 +28,40 @@
                         <li class="nav-item">
                             <a class="nav-link fw-semibold" href="/" style="color:#003366; font-size:1.13rem;">Anasayfa</a>
                         </li>
-                        @if (User.Identity.IsAuthenticated)
-                        {
-                            <li class="nav-item">
-                                <span class="nav-link fw-bold" style="color: #009ddc; font-size:1.1rem;">
-                                    <i class="bi bi-person-circle me-1"></i>
-                                    @User.Identity.Name
-                                </span>
-                            </li>
-                            <li class="nav-item">
-                                <form asp-controller="Logout" asp-action="Index" method="post" class="d-inline">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit"
-                                            class="btn rounded-pill fw-bold px-4 ms-lg-2"
-                                            style="background:#ff4f4f; color:#fff; border:none; font-size:1.09rem;">
-                                        Çıkış Yap
-                                    </button>
-                                </form>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="btn rounded-pill fw-bold px-4 ms-lg-2"
-                                   href="/Login/Index"
-                                   style="background:#009ddc; color:#fff; border:none; font-size:1.09rem;">
-                                    Giriş Yap
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="btn rounded-pill fw-bold px-4 ms-lg-2"
-                                   href="/Register/Index"
-                                   style="background: #fff; color:#009ddc; border: 2px solid #009ddc; font-size:1.09rem;">
-                                    Kayıt Ol
-                                </a>
-                            </li>
-                        }
+                   
+                        <li class="nav-item d-none" id="userInfoLi">
+                            <span class="nav-link fw-bold" style="color: #009ddc; font-size:1.1rem;">
+                                <i class="bi bi-person-circle me-1"></i>
+                                <span id="userNameSpan">Kullanıcı</span>
+                            </span>
+                        </li>
+                        <li class="nav-item d-none" id="logoutLi">
+                            <button type="button"
+                                    onclick="logout()"
+                                    class="btn rounded-pill fw-bold px-4 ms-lg-2"
+                                    style="background:#ff4f4f; color:#fff; border:none; font-size:1.09rem;">
+                                Çıkış Yap
+                            </button>
+                        </li>
+                        <li class="nav-item d-none" id="loginLi">
+                            <a class="btn rounded-pill fw-bold px-4 ms-lg-2"
+                               href="/Login/Index"
+                               style="background:#009ddc; color:#fff; border:none; font-size:1.09rem;">
+                                Giriş Yap
+                            </a>
+                        </li>
+                        <li class="nav-item d-none" id="registerLi">
+                            <a class="btn rounded-pill fw-bold px-4 ms-lg-2"
+                               href="/Register/Index"
+                               style="background: #fff; color:#009ddc; border: 2px solid #009ddc; font-size:1.09rem;">
+                                Kayıt Ol
+                            </a>
+                        </li>
                     </ul>
                 </div>
-
             </div>
         </nav>
     </header>
-
-
 
     <div class="container">
         <main role="main" class="pb-3">
@@ -77,10 +69,55 @@
         </main>
     </div>
 
-    
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    <script>
+       
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) { return null; }
+        }
+        function updateNavbar() {
+            const token = sessionStorage.getItem('token');
+            const loginLi = document.getElementById('loginLi');
+            const registerLi = document.getElementById('registerLi');
+            const logoutLi = document.getElementById('logoutLi');
+            const userInfoLi = document.getElementById('userInfoLi');
+            if (token) {
+              
+                if (loginLi) loginLi.classList.add('d-none');
+                if (registerLi) registerLi.classList.add('d-none');
+                if (logoutLi) logoutLi.classList.remove('d-none');
+                if (userInfoLi) userInfoLi.classList.remove('d-none');
+              
+                let userName = "Kullanıcı";
+                const jwt = parseJwt(token);
+                if (jwt && (jwt.fullName || jwt.name || jwt.email)) {
+                    userName = jwt.fullName || jwt.name || jwt.email;
+                }
+                document.getElementById('userNameSpan').innerText = userName;
+            } else {
+             
+                if (loginLi) loginLi.classList.remove('d-none');
+                if (registerLi) registerLi.classList.remove('d-none');
+                if (logoutLi) logoutLi.classList.add('d-none');
+                if (userInfoLi) userInfoLi.classList.add('d-none');
+            }   
+        }
+     
+        function logout() {
+            sessionStorage.removeItem('token');
+            window.location.href = '/Login/Index';
+        }
+        updateNavbar();
+    </script>
 </body>
 </html>

@@ -69,16 +69,37 @@ namespace BankSim.Application.Services
             await _unitOfWork.SaveChangesAsync();
 
         }
-        public async Task<bool> IsAccountBelongsToUser(int accountId, string userEmail)
-        {
-            var account = await _repository.GetByIdAsync(accountId);
-            return account != null && account.Customer?.Email == userEmail;
-        }
+     
+        
         public async Task<string> GetAccountOwnerNameAsync(int accountId)
         {
             var account = await _repository.GetByIdAsync(accountId);
             return account?.Customer?.FullName ?? "kullanici";
         }
+
+
+
+        public async Task<(bool Success, string ErrorMessage)> DeductBalanceAsync(int accountId, decimal amount)
+        {
+            var account = await _repository.GetByIdAsync(accountId);
+            if (account == null)
+                return (false, "Hesap bulunamadı.");
+
+            if (amount <= 0)
+                return (false, "Tutar pozitif olmalı.");
+
+            if (account.Balance < amount)
+                return (false, "Yetersiz bakiye.");
+
+            account.Balance -= amount;
+            _repository.Update(account); 
+
+            await _unitOfWork.SaveChangesAsync(); 
+            return (true, "");
+        }
+
+
+
 
 
     }

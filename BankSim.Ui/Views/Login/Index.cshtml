@@ -11,13 +11,13 @@
                  class="shadow rounded-circle p-2 bg-light" />
         </div>
         <h2 class="fw-bold mb-3" style="color:#003366;">BankSim’e Giriş Yap</h2>
-        <form asp-action="Index" method="post" class="position-relative">
+        <form id="loginForm" class="position-relative" autocomplete="off">
             <div class="mb-3 input-group">
                 <span class="input-group-text icon-bg">
                     <i class="bi bi-envelope-fill"></i>
                 </span>
                 <input type="email"
-                       name="email"
+                       id="email"
                        class="form-control form-control-lg rounded-pill ps-3"
                        placeholder="E-posta adresiniz"
                        required />
@@ -27,15 +27,12 @@
                     <i class="bi bi-lock-fill"></i>
                 </span>
                 <input type="password"
-                       name="password"
+                       id="password"
                        class="form-control form-control-lg rounded-pill ps-3"
                        placeholder="Şifreniz"
                        required />
             </div>
-            @if (ViewBag.Hata != null)
-            {
-                <div class="alert alert-danger rounded-pill mt-2">@ViewBag.Hata</div>
-            }
+            <div id="loginError" class="alert alert-danger rounded-pill mt-2 d-none"></div>
             <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill mt-3 shadow-sm">
                 Giriş Yap
             </button>
@@ -47,23 +44,15 @@
     </div>
 </div>
 
-<style>
-    html, body {
-        height: 100%;
-        margin: 0;
-    }
 
+<style>
+    html, body { height: 100%; margin: 0; }
     body {
         background: linear-gradient(120deg, #f6fbff 0%, #bfe2f7 100%);
         background-size: cover;
         background-attachment: fixed;
     }
-
-    .login-page {
-        min-height: 100vh;
-        width: 100%;
-    }
-
+    .login-page { min-height: 100vh; width: 100%; }
     .login-card {
         background: #fff;
         border-radius: 1rem;
@@ -71,7 +60,6 @@
         width: 100%;
         box-shadow: 0 4px 30px rgba(0, 51, 102, 0.1);
     }
-
     .icon-bg {
         background: #e0f2fb;
         border: none;
@@ -80,28 +68,71 @@
         color: #009ddc;
         font-size: 1.2rem;
     }
-
     .form-control:focus {
         box-shadow: 0 0 0 0.25rem rgba(0, 157, 220, 0.25);
         border-color: #009ddc;
     }
-
     .btn-primary {
         background: #009ddc;
         border: none;
         transition: background 0.3s, transform 0.2s;
     }
-
-        .btn-primary:hover {
-            background: #007bb5;
-            transform: translateY(-2px);
-        }
-
+    .btn-primary:hover {
+        background: #007bb5;
+        transform: translateY(-2px);
+    }
     .alert-danger {
         background: rgba(220,53,69,0.1);
         color: #dc3545;
         border: none;
     }
 </style>
-
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+
+@section Scripts {
+<script>
+const API_BASE = window.API_BASE_URL;
+
+
+if (sessionStorage.getItem('token')) {
+    window.location.href = "/Dashboard/Index";
+}
+
+document.getElementById('loginForm').onsubmit = async function(e) {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const errDiv = document.getElementById('loginError');
+    errDiv.classList.add('d-none');
+    errDiv.innerText = "";
+
+    if (!email || !password) {
+        errDiv.innerText = "E-posta ve şifre giriniz!";
+        errDiv.classList.remove('d-none');
+        return;
+    }
+
+    const resp = await fetch(API_BASE + '/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+    });
+
+    if (!resp.ok) {
+        errDiv.innerText = "Giriş başarısız! E-posta veya şifre yanlış.";
+        errDiv.classList.remove('d-none');
+        return;
+    }
+
+    const data = await resp.json();
+    if (!data.token) {
+        errDiv.innerText = "Giriş başarısız! (Token alınamadı)";
+        errDiv.classList.remove('d-none');
+        return;
+    }
+
+    sessionStorage.setItem('token', data.token);
+    window.location.href = "/Dashboard/Index";
+};
+</script>
+}

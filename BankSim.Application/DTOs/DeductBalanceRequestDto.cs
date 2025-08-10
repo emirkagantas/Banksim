@@ -6,12 +6,10 @@ using System.Threading.Tasks;
 
 namespace BankSim.Application.DTOs
 {
-    public class PayInvoiceRequest
+    public class DeductBalanceRequest
     {
-        public int InvoiceId { get; set; }
-        public string CustomerTckn { get; set; } = null!;
-        public string PaymentMethod { get; set; } = null!;
         public int AccountId { get; set; }
+        public decimal Amount { get; set; }
     }
 
 }

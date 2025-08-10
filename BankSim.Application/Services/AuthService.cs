@@ -15,12 +15,15 @@ namespace BankSim.Application.Services
         private readonly ICustomerRepository _customerRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
+        private readonly IRedisCacheService _cacheService;
 
-        public AuthService(ICustomerRepository customerRepository, IUnitOfWork unitOfWork, IConfiguration config)
+        public AuthService(ICustomerRepository customerRepository, IUnitOfWork unitOfWork, IConfiguration config, IRedisCacheService cacheService)
         {
             _customerRepository = customerRepository;
             _unitOfWork = unitOfWork;
             _config = config;
+            _cacheService = cacheService;
+
         }
 
         public async Task RegisterAsync(RegisterDto dto)
@@ -51,6 +54,15 @@ namespace BankSim.Application.Services
 
             await _customerRepository.AddAsync(customer);
             await _unitOfWork.SaveChangesAsync();
+            var dtoToCache = new CustomerDto
+            {
+                Id = customer.Id,
+                FullName = customer.FullName,
+                Email = customer.Email,
+                Phone = customer.Phone
+            };
+            string cacheKey = $"customer:{customer.Id}";
+            await _cacheService.SetAsync(cacheKey, dtoToCache, TimeSpan.FromMinutes(15));
         }
 
 

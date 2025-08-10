@@ -46,7 +46,7 @@ builder.Services.AddControllers()
    
 
    builder.Services.AddCustomModelStateHandler();
-// En baþa:
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
@@ -60,6 +60,13 @@ builder.Services.AddCors(options =>
         });
 });
 
+var redisSettings = builder.Configuration.GetSection("RedisSettings");
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = $"{redisSettings["Host"]}:{redisSettings["Port"]}";
+});
+
+builder.Services.AddScoped<IRedisCacheService, RedisCacheService>();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateCustomerValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterValidator>();

@@ -70,5 +70,16 @@ namespace BankSim.API.Controllers
             return Ok(account);
         }
 
+        [Authorize]
+        [HttpPost("deduct")]
+        public async Task<IActionResult> DeductBalance([FromBody] DeductBalanceRequest dto)
+        {
+            var (success, error) = await _accountService.DeductBalanceAsync(dto.AccountId, dto.Amount);
+            if (!success)
+                return BadRequest(error);
+            return Ok("Bakiye başarıyla düşüldü.");
+        }
+
+
     }
 }

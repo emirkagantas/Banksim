@@ -1,16 +1,217 @@
 ﻿@{
     ViewData["Title"] = "Fatura Sorgula";
 }
-<h2>Fatura Sorgula</h2>
-
-@if (TempData["Message"] != null)
-{
-    <div class="alert alert-info">@TempData["Message"]</div>
-}
-
-<form asp-action="List" method="post" class="mb-3">
-    <div class="input-group">
-        <input type="text" name="tckn" class="form-control" placeholder="TCKN giriniz" required />
-        <button type="submit" class="btn btn-primary">Faturaları Listele</button>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow rounded-4 p-4">
+                <h2 class="mb-4">Fatura Sorgula</h2>
+                <form id="invoiceForm" autocomplete="off">
+                    <div class="input-group mb-3">
+                        <input type="text" id="tckn" class="form-control" placeholder="TCKN giriniz" required maxlength="11" minlength="11" />
+                        <button type="submit" class="btn btn-primary">Faturaları Listele</button>
+                    </div>
+                </form>
+                <div id="invoiceMsg"></div>
+                <div id="invoiceList"></div>
+            </div>
+        </div>
     </div>
-</form>
+</div>
+
+
+<div class="modal fade" id="selectAccountModal" tabindex="-1" aria-labelledby="selectAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="selectAccountModalLabel">Ödeme Yapılacak TL Hesabı Seçin</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <select id="tlAccountsDropdown" class="form-select mb-3"></select>
+                <button type="button" id="payInvoiceBtn" class="btn btn-success w-100">Ödemeyi Gerçekleştir</button>
+                <div id="modalPayMsg" class="mt-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const API_BASE = window.API_BASE_URL;
+            const token = sessionStorage.getItem('token');
+            if (!token) window.location.href = "/Login/Index";
+            let userTlAccounts = [];
+            let selectedInvoiceId = null;
+            let selectedTckn = null;
+
+       
+            function parseJwt(token) {
+                try {
+                    const base64Url = token.split('.')[1];
+                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    }).join(''));
+                    return JSON.parse(jsonPayload);
+                } catch { return {}; }
+            }
+
+        
+            async function fetchUserTlAccounts() {
+                const jwt = parseJwt(token);
+                const customerId = jwt.nameid || jwt.sub || jwt.id || jwt.customerId;
+                if (!customerId) return [];
+                const resp = await fetch(`${API_BASE}/api/account/customer/${customerId}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!resp.ok) return [];
+                const accounts = await resp.json();
+                return accounts.filter(acc =>
+                    (acc.currency ?? acc.Currency ?? "").toUpperCase() === "TL"
+                );
+            }
+
+         
+            const form = document.getElementById('invoiceForm');
+            if (!form) {
+                console.warn('invoiceForm bulunamadı!');
+                return;
+            }
+
+            form.onsubmit = async function (e) {
+                e.preventDefault();
+                const tcknInput = document.getElementById('tckn');
+                if (!tcknInput) return;
+                const tckn = tcknInput.value.trim();
+                document.getElementById('invoiceMsg').innerHTML = '';
+                document.getElementById('invoiceList').innerHTML = '';
+                if (!tckn || tckn.length !== 11 || !/^\d{11}$/.test(tckn)) {
+                    document.getElementById('invoiceMsg').innerHTML = '<div class="alert alert-danger">Geçerli bir TCKN giriniz.</div>';
+                    return;
+                }
+                selectedTckn = tckn;
+
+            
+                let resp, invoices;
+                try {
+                    resp = await fetch(`${API_BASE}/api/invoice/customer/${tckn}`, {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                } catch {
+                    document.getElementById('invoiceMsg').innerHTML = '<div class="alert alert-danger">Sunucuya bağlanılamadı.</div>';
+                    return;
+                }
+
+                if (!resp.ok) {
+                    document.getElementById('invoiceMsg').innerHTML = '<div class="alert alert-danger">Faturalar getirilemedi.</div>';
+                    return;
+                }
+                try {
+                    invoices = await resp.json();
+                } catch {
+                    document.getElementById('invoiceMsg').innerHTML = '<div class="alert alert-danger">Fatura verisi okunamadı.</div>';
+                    return;
+                }
+                if (!invoices || !Array.isArray(invoices) || !invoices.length) {
+                    document.getElementById('invoiceList').innerHTML = '<div class="alert alert-info">Fatura bulunamadı.</div>';
+                    return;
+                }
+
+         
+                document.getElementById('invoiceList').innerHTML = `
+                    <table class="table table-bordered mt-2 align-middle text-center">
+                        <thead>
+                            <tr>
+                                <th>Tür</th>
+                                <th>Fatura No</th>
+                                <th>Tutar</th>
+                                <th>Durum</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${invoices.map(f => `
+                                <tr>
+                                    <td>${f.type ?? f.Type ?? "-"}</td>
+                                    <td>${f.id ?? f.Id ?? "-"}</td>
+                                    <td>${f.amount ?? f.Amount} ₺</td>
+                                    <td>
+                                        ${(f.isPaid ?? f.IsPaid)
+                                            ? '<span class="badge bg-success">Ödendi</span>'
+                                            : '<span class="badge bg-warning text-dark">Beklemede</span>'}
+                                    </td>
+                                    <td>
+                                        ${(f.isPaid ?? f.IsPaid)
+                                            ? '<span class="text-success">✓</span>'
+                                            : `<button class="btn btn-success btn-sm" onclick="showAccountModal(${f.id ?? f.Id})">Öde</button>`
+                                        }
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            };
+
+        
+            window.showAccountModal = async function(invoiceId) {
+                selectedInvoiceId = invoiceId;
+                userTlAccounts = await fetchUserTlAccounts();
+                const dropdown = document.getElementById('tlAccountsDropdown');
+                dropdown.innerHTML = "";
+                if (!userTlAccounts.length) {
+                    dropdown.innerHTML = `<option value="">TL hesabınız bulunamadı!</option>`;
+                    document.getElementById('payInvoiceBtn').disabled = true;
+                } else {
+                    userTlAccounts.forEach(acc => {
+                        dropdown.innerHTML += `<option value="${acc.id ?? acc.Id}">${acc.iban ?? acc.IBAN} (${acc.balance ?? acc.Balance} ₺)</option>`;
+                    });
+                    document.getElementById('payInvoiceBtn').disabled = false;
+                }
+                document.getElementById('modalPayMsg').innerHTML = "";
+                const modal = new bootstrap.Modal(document.getElementById('selectAccountModal'));
+                modal.show();
+            }
+
+         
+            document.getElementById('payInvoiceBtn').onclick = async function() {
+                const accountId = Number(document.getElementById('tlAccountsDropdown').value);
+                if (!accountId) {
+                    document.getElementById('modalPayMsg').innerHTML = '<div class="alert alert-danger">Lütfen bir TL hesabı seçiniz.</div>';
+                    return;
+                }
+                let resp;
+                try {
+                    resp = await fetch(`${API_BASE}/api/invoice/pay`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify({
+                            invoiceId: selectedInvoiceId,
+                            customerTckn: selectedTckn,
+                            accountId: accountId,
+                            paymentMethod: "Account"
+                        })
+                    });
+                } catch {
+                    document.getElementById('modalPayMsg').innerHTML = '<div class="alert alert-danger">Sunucuya bağlanılamadı.</div>';
+                    return;
+                }
+                if (resp.ok) {
+                    document.getElementById('modalPayMsg').innerHTML = '<div class="alert alert-success">Fatura başarıyla ödendi.</div>';
+                    setTimeout(() => {
+                        bootstrap.Modal.getInstance(document.getElementById('selectAccountModal')).hide();
+                        if (form) form.dispatchEvent(new Event('submit'));
+                    }, 1000);
+                } else {
+                    const err = await resp.text();
+                    document.getElementById('modalPayMsg').innerHTML = `<div class="alert alert-danger">${err || "Fatura ödenemedi!"}</div>`;
+                }
+            };
+        });
+    </script>
+}

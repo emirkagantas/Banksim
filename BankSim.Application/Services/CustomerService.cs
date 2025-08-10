@@ -10,13 +10,14 @@ namespace BankSim.Application.Services
         private readonly ICustomerRepository _repository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IRedisCacheService _cacheService;
 
-        public CustomerService(ICustomerRepository repository, IMapper mapper, IUnitOfWork unitOfWork)
+        public CustomerService(ICustomerRepository repository, IMapper mapper, IUnitOfWork unitOfWork, IRedisCacheService cacheService)
         {
             _repository = repository;
             _mapper = mapper;
             _unitOfWork = unitOfWork;
-
+            _cacheService = cacheService;
         }
 
         public async Task<List<CustomerDto>> GetAllAsync()
@@ -27,8 +28,23 @@ namespace BankSim.Application.Services
 
         public async Task<CustomerDto?> GetByIdAsync(int id)
         {
+            string cacheKey = $"customer:{id}";
+
+
+            var cached = await _cacheService.GetAsync<CustomerDto>(cacheKey);
+            if (cached is not null)
+                return cached;
+
+
             var customer = await _repository.GetByIdAsync(id);
-            return _mapper.Map<CustomerDto?>(customer);
+            if (customer is null) return null;
+
+            var dto = _mapper.Map<CustomerDto>(customer);
+
+
+            await _cacheService.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(15));
+
+            return dto;
         }
 
         public async Task AddAsync(CreateCustomerDto dto)
@@ -45,6 +61,7 @@ namespace BankSim.Application.Services
             _mapper.Map(dto, customer);
             await _repository.UpdateAsync(customer);
             await _unitOfWork.SaveChangesAsync();
+            await _cacheService.RemoveAsync($"customer:{id}");
         }
 
         public async Task DeleteAsync(int id)
@@ -53,6 +70,7 @@ namespace BankSim.Application.Services
             if (customer == null) return;
             await _repository.DeleteAsync(customer);
             await _unitOfWork.SaveChangesAsync();
+            await _cacheService.RemoveAsync($"customer:{id}");
         }
     }
 }

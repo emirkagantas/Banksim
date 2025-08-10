@@ -10,7 +10,7 @@ namespace BankSim.Application.Services
     public interface IInvoiceService
     {
         Task<List<InvoiceDto>> GetInvoicesAsync(string tckn);
-        Task<bool> PayInvoiceAsync(PayInvoiceRequest req);
+        Task<bool> PayInvoiceAsync(PayInvoiceRequest req,string bearerToken);
     }
 
 }

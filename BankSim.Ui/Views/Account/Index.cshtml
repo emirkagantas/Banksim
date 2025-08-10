@@ -1,77 +1,109 @@
 ﻿@{
     ViewData["Title"] = "Hesaplarım";
-    var hesaplar = ViewBag.Accounts as List<AccountDto>;
-    int hesapSayisi = (int)ViewBag.AccountCount;
 }
-
-@functions {
-    string GetCurrencyWithSymbol(string currency)
-    {
-        return currency switch
-        {
-            "TL" => "₺ TL",
-            "USD" => "$ USD",
-            "EUR" => "€ EUR",
-            _ => currency
-        };
-    }
-}
-
-
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="fw-bold" style="color:#003366;">Tüm Hesaplarım (@hesapSayisi)</h3>
+        <h3 class="fw-bold" id="accountHeader" style="color:#003366;">Tüm Hesaplarım</h3>
         <div>
-            <a asp-controller="Account" asp-action="Transfer" class="btn btn-warning rounded-3 me-2">
+            <a href="/Account/Transfer" class="btn btn-warning rounded-3 me-2">
                 <i class="bi bi-arrow-left-right me-1"></i> Para Transferi
             </a>
-            <a asp-controller="Account" asp-action="Create" class="btn btn-success rounded-3 me-2">
+            <a href="/Account/Create" class="btn btn-success rounded-3 me-2">
                 + Hesap Aç
             </a>
-            <a href="@Url.Action("Index", "Dashboard")" class="btn btn-outline-primary rounded-3">
+            <a href="/Dashboard/Index" class="btn btn-outline-primary rounded-3">
                 ← Ana Sayfa
             </a>
         </div>
     </div>
-    <div class="row">
-        @if (hesaplar != null && hesaplar.Count > 0)
-        {
-            foreach (var h in hesaplar)
-            {
-                <div class="col-md-6 mb-3">
-                    <a href="@Url.Action("Details", "Account", new { id = h.Id })" style="text-decoration:none;">
-                        <div class="card shadow rounded-4 border-0 hover-shadow" style="transition:box-shadow .3s;">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h5 class="card-title mb-0" style="color:#0064c9;">@h.IBAN</h5>
-                                        <span class="fw-light fs-6" style="color:#888;">
-                                            @GetCurrencyWithSymbol(h.Currency)
-                                        </span>
-                                    </div>
-                                    <div class="fs-4 fw-bold" style="color:#003366;">
-                                        @h.Balance @GetCurrencyWithSymbol(h.Currency)
-                                    </div>
-                                </div>
-                                <div class="mt-2 text-secondary">
-                                    <span>Hesap No: @h.Id</span>
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                </div>
+    <div class="row" id="accountsList"></div>
+</div>
+
+@section Scripts {
+    <script>
+   
+        function getCurrencyWithSymbol(currency) {
+            switch (currency) {
+                case "TL": return "₺ TL";
+                case "USD": return "$ USD";
+                case "EUR": return "€ EUR";
+                default: return currency || "";
             }
         }
-        else
-        {
-            <div class="col-12">
-                <div class="alert alert-warning text-center py-4 fs-5">
-                    Hiç hesabınız yok.
-                    <a asp-controller="Account" asp-action="Create" class="btn btn-success ms-2 px-3 rounded-3">Hesap Aç</a>
-                </div>
-            </div>
+
+        const API_BASE = window.API_BASE_URL;
+        const token = sessionStorage.getItem('token');
+        if (!token) window.location.href = "/Login/Index";
+
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch { return {}; }
         }
-    </div>
-</div>
+        const jwt = parseJwt(token);
+        const customerId = jwt.nameid || jwt.sub || jwt.id || jwt.customerId;
+
+        if (!customerId) {
+            document.getElementById("accountsList").innerHTML =
+                `<div class="col-12"><div class="alert alert-danger">Kullanıcı ID'si bulunamadı!</div></div>`;
+        } else {
+            fetch(`${API_BASE}/api/account/customer/${customerId}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(resp => resp.ok ? resp.json() : Promise.reject(resp))
+            .then(accounts => {
+                const listDiv = document.getElementById("accountsList");
+                const header = document.getElementById("accountHeader");
+                if (!accounts || accounts.length === 0) {
+                    header.innerHTML = "Tüm Hesaplarım (0)";
+                    listDiv.innerHTML = `
+                        <div class="col-12">
+                            <div class="alert alert-warning text-center py-4 fs-5">
+                                Hiç hesabınız yok.
+                                <a href="/Account/Create" class="btn btn-success ms-2 px-3 rounded-3">Hesap Aç</a>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                header.innerHTML = `Tüm Hesaplarım (${accounts.length})`;
+                listDiv.innerHTML = accounts.map(h => `
+                    <div class="col-md-6 mb-3">
+                        <a href="/Account/Details/${h.id ?? h.Id}" style="text-decoration:none;">
+                            <div class="card shadow rounded-4 border-0 hover-shadow" style="transition:box-shadow .3s;">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="card-title mb-0" style="color:#0064c9;">${h.iban ?? h.IBAN}</h5>
+                                            <span class="fw-light fs-6" style="color:#888;">
+                                                ${getCurrencyWithSymbol(h.currency ?? h.Currency)}
+                                            </span>
+                                        </div>
+                                        <div class="fs-4 fw-bold" style="color:#003366;">
+                                            ${h.balance ?? h.Balance} ${getCurrencyWithSymbol(h.currency ?? h.Currency)}
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 text-secondary">
+                                        <span>Hesap No: ${h.id ?? h.Id}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                `).join("");
+            })
+            .catch(async (resp) => {
+                const listDiv = document.getElementById("accountsList");
+                const text = resp && resp.text ? await resp.text() : "";
+                listDiv.innerHTML = `<div class="col-12"><div class="alert alert-danger">Hesaplar alınamadı. ${text}</div></div>`;
+            });
+        }
+    </script>
+}

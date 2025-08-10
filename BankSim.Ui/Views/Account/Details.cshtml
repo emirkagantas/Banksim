@@ -1,124 +1,217 @@
 ﻿@{
     ViewData["Title"] = "Hesap Detayı";
-    var hesap = ViewBag.Account as AccountDto;
-    var transferler = ViewBag.Transfers as List<TransactionDto>;
-    int hesapId = (int)ViewBag.AccountId;
-    int totalCount = (int)ViewBag.TotalCount;
-    int page = (int)ViewBag.Page;
-    int pageSize = (int)ViewBag.PageSize;
-    int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
-
-    string defaultSd = ViewBag.DefaultStartDate as string ?? DateTime.Today.AddMonths(-1).ToString("yyyy-MM-dd");
-    string defaultEd = ViewBag.DefaultEndDate as string ?? DateTime.Today.ToString("yyyy-MM-dd");
-
-    string selSd = ViewBag.StartDateString as string ?? defaultSd;
-    string selEd = ViewBag.EndDateString as string ?? defaultEd;
 }
-
-<div class="container mt-4">
+<div class="container mt-4" id="accountDetailsContainer">
     <div class="mb-3">
-        <a asp-controller="Account"
-           asp-action="Index"
-           class="btn btn-outline-primary rounded-3">
+        <a href="/Account/Index" class="btn btn-outline-primary rounded-3">
             ← Tüm Hesaplarım
         </a>
     </div>
 
-    @if (hesap != null)
-    {
-        <div class="card shadow rounded-4 p-4 mb-4">
-            <h4 class="mb-1" style="color:#0064c9;">@hesap.IBAN</h4>
-            <div>Bakiye: <b>@hesap.Balance ₺</b> | Döviz: <b>@hesap.Currency</b></div>
-            <div>Hesap No: <b>@hesap.Id</b></div>
+ 
+    <div id="accountInfo" class="card shadow rounded-4 p-4 mb-4" style="display:none;"></div>
+
+
+    <form id="filterForm" class="row g-2 mb-3" autocomplete="off">
+        <div class="col-auto"><label>Tarih Aralığı:</label></div>
+        <div class="col-auto">
+            <input id="startDate" type="date" class="form-control" required />
         </div>
-
-        <!-- Tarih aralığı filtre formu (server-side) -->
-        <form class="row g-2 mb-3" method="get" asp-controller="Account" asp-action="Details" asp-route-id="@hesapId">
-            <div class="col-auto">
-                <label>Tarih Aralığı:</label>
-            </div>
-            <div class="col-auto">
-                <input name="startDate" type="date" class="form-control" value="@selSd" />
-            </div>
-            <div class="col-auto">
-                <input name="endDate" type="date" class="form-control" value="@selEd" />
-            </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-outline-primary">Filtrele</button>
-            </div>
-        </form>
-
-        <div class="mb-2 text-end d-flex gap-2">
-            <!-- Excel Export Formu -->
-            <form method="post" asp-controller="Account" asp-action="ExportExcel" class="d-inline">
-                <input type="hidden" name="id" value="@hesapId" />
-                <input type="hidden" name="startDate" value="@selSd" />
-                <input type="hidden" name="endDate" value="@selEd" />
-                <button type="submit" class="btn btn-success me-2 rounded-3">Excel’e Aktar</button>
-            </form>
-            <!-- PDF Export Formu -->
-            <form method="post" asp-controller="Account" asp-action="ExportPdf" class="d-inline">
-                <input type="hidden" name="id" value="@hesapId" />
-                <input type="hidden" name="startDate" value="@selSd" />
-                <input type="hidden" name="endDate" value="@selEd" />
-                <button type="submit" class="btn btn-danger rounded-3">PDF’e Aktar</button>
-            </form>
+        <div class="col-auto">
+            <input id="endDate" type="date" class="form-control" required />
         </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-outline-primary">Filtrele</button>
+        </div>
+    </form>
 
-        <h5 class="mb-3 mt-4 fw-bold">Transferler</h5>
-        @if (transferler != null && transferler.Count > 0)
-        {
-            <table class="table table-bordered table-hover rounded">
-                <thead>
-                    <tr>
-                        <th>Tarih</th>
-                        <th>Gönderen</th>
-                        <th>Alıcı</th>
-                        <th>Tutar</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var tx in transferler)
-                    {
-                        <tr>
-                            <td>@tx.TransactionDate.ToString("dd.MM.yyyy HH:mm")</td>
-                            <td>@tx.FromAccountName</td>
-                            <td>@tx.ToAccountName</td>
-                            <td>@tx.Amount ₺</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+    <div class="mb-2 text-end d-flex gap-2" id="exportButtons" style="display:none;">
+        <button id="exportExcel" class="btn btn-success me-2 rounded-3">Excel’e Aktar</button>
+        <button id="exportPdf" class="btn btn-danger rounded-3">PDF’e Aktar</button>
+    </div>
 
-            <nav>
-                <ul class="pagination justify-content-center">
-                    @for (int i = 1; i <= totalPages; i++)
-                    {
-                        <li class="page-item @(i == page ? "active" : "")">
-                            <a class="page-link"
-                               asp-controller="Account"
-                               asp-action="Details"
-                               asp-route-id="@hesapId"
-                               asp-route-page="@i"
-                               asp-route-startDate="@selSd"
-                               asp-route-endDate="@selEd">
-                                @i
-                            </a>
-                        </li>
-                    }
-                </ul>
-            </nav>
-            <div class="text-secondary fs-6">
-                Toplam @totalCount işlem, @transferler.Count tanesi gösteriliyor.
-            </div>
-        }
-        else
-        {
-            <div class="alert alert-info">Transfer işlemi bulunamadı.</div>
-        }
-    }
-    else
-    {
-        <div class="alert alert-danger">Hesap bulunamadı.</div>
-    }
+    <h5 class="mb-3 mt-4 fw-bold">Transferler</h5>
+    <div id="transfersTableContainer"></div>
+    <div id="pagination"></div>
+    <div id="transferInfo" class="text-secondary fs-6"></div>
+    <div id="errorMsg"></div>
 </div>
+
+@section Scripts {
+    <script>
+        const API_BASE = window.API_BASE_URL;
+        const token = sessionStorage.getItem('token');
+        if (!token) window.location.href = "/Login/Index";
+
+    
+        const urlParams = new URLSearchParams(window.location.search);
+        const hesapId = window.location.pathname.split("/").pop();
+        const page = parseInt(urlParams.get("page") || 1);
+        const pageSize = 10;
+
+        const today = new Date();
+        const defaultStart = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()).toISOString().slice(0, 10);
+        const defaultEnd = today.toISOString().slice(0, 10);
+
+    
+        document.getElementById("startDate").value = urlParams.get("startDate") || defaultStart;
+        document.getElementById("endDate").value = urlParams.get("endDate") || defaultEnd;
+
+        function formatDate(date) {
+            if (!date) return "";
+            const d = new Date(date);
+            if (isNaN(d)) return date;
+            return d.toLocaleString('tr-TR');
+        }
+
+      
+        async function loadAccountDetails(pageParam = page) {
+            document.getElementById('errorMsg').innerText = "";
+            const startDate = document.getElementById("startDate").value;
+            const endDate = document.getElementById("endDate").value;
+
+            let hesap;
+            try {
+                const accResp = await fetch(`${API_BASE}/api/account/${hesapId}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!accResp.ok) {
+                    document.getElementById("errorMsg").innerHTML = '<div class="alert alert-danger">Hesap bulunamadı.</div>';
+                    document.getElementById('accountInfo').style.display = "none";
+                    return;
+                }
+                hesap = await accResp.json();
+            } catch (ex) {
+                document.getElementById("errorMsg").innerHTML = '<div class="alert alert-danger">Sunucu hatası!</div>';
+                return;
+            }
+
+         
+            const accountInfo = document.getElementById('accountInfo');
+            accountInfo.style.display = "";
+            accountInfo.innerHTML = `
+                <h4 class="mb-1" style="color:#0064c9;">${hesap.iban || hesap.IBAN}</h4>
+                <div>Bakiye: <b>${hesap.balance ?? hesap.Balance} ₺</b> | Döviz: <b>${hesap.currency ?? hesap.Currency}</b></div>
+                <div>Hesap No: <b>${hesap.id ?? hesap.Id}</b></div>
+            `;
+
+           
+            let transfers = [];
+            try {
+                const filter = {
+                    accountId: hesapId,
+                    startDate: new Date(startDate).toISOString(),
+                    endDate: new Date(endDate).toISOString()
+                };
+                const txResp = await fetch(`${API_BASE}/api/transaction/filter`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(filter)
+                });
+                transfers = txResp.ok ? await txResp.json() : [];
+            } catch { transfers = []; }
+
+         
+            const totalCount = transfers.length;
+            const totalPages = Math.ceil(totalCount / pageSize);
+            const paged = transfers.slice((pageParam - 1) * pageSize, pageParam * pageSize);
+
+           
+            let tableHtml = "";
+            if (paged.length > 0) {
+                tableHtml = `<table class="table table-bordered table-hover rounded">
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Gönderen</th>
+                            <th>Alıcı</th>
+                            <th>Tutar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${paged.map(tx => `
+                            <tr>
+                                <td>${formatDate(tx.transactionDate || tx.TransactionDate)}</td>
+                                <td>${tx.fromAccountName || tx.FromAccountName}</td>
+                                <td>${tx.toAccountName || tx.ToAccountName}</td>
+                                <td>${tx.amount ?? tx.Amount} ₺</td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>`;
+            } else {
+                tableHtml = `<div class="alert alert-info">Transfer işlemi bulunamadı.</div>`;
+            }
+            document.getElementById("transfersTableContainer").innerHTML = tableHtml;
+            document.getElementById("exportButtons").style.display = paged.length > 0 ? "" : "none";
+
+        
+            let paginationHtml = "";
+            if (totalPages > 1) {
+                paginationHtml = `<ul class="pagination justify-content-center">`;
+                for (let i = 1; i <= totalPages; i++) {
+                    paginationHtml += `<li class="page-item${i === pageParam ? " active" : ""}">
+                        <a class="page-link" href="?page=${i}&startDate=${startDate}&endDate=${endDate}">${i}</a>
+                    </li>`;
+                }
+                paginationHtml += `</ul>`;
+            }
+            document.getElementById("pagination").innerHTML = paginationHtml;
+
+            document.getElementById("transferInfo").innerText =
+                `Toplam ${totalCount} işlem, ${paged.length} tanesi gösteriliyor.`;
+        }
+        loadAccountDetails();
+
+   
+        document.getElementById("filterForm").onsubmit = function(e) {
+            e.preventDefault();
+            window.location.search = `?startDate=${document.getElementById("startDate").value}&endDate=${document.getElementById("endDate").value}`;
+        };
+
+   
+        document.getElementById("exportExcel").onclick = function() {
+            exportFile('excel');
+        };
+        document.getElementById("exportPdf").onclick = function() {
+            exportFile('pdf');
+        };
+
+        function exportFile(type) {
+            const startDate = document.getElementById("startDate").value;
+            const endDate = document.getElementById("endDate").value;
+            const filter = {
+                accountId: hesapId,
+                startDate: startDate,
+                endDate: endDate
+            };
+            let endpoint = type === 'excel'
+                ? '/api/transaction/export-excel'
+                : '/api/transaction/export-pdf';
+            fetch(API_BASE + endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(filter)
+            })
+            .then(resp => resp.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = type === 'excel'
+                    ? `transferler_${hesapId}.xlsx`
+                    : `transferler_${hesapId}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            });
+        }
+    </script>
+}

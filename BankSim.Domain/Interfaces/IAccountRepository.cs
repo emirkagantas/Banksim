@@ -10,7 +10,7 @@ namespace BankSim.Domain.Interfaces
         Task AddAsync(Account account);
         void Delete(Account account);
         Task<List<Account>> GetByIdsAsync(List<int> ids);
-
+        void Update(Account account);
 
     }
 }

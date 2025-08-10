@@ -22,7 +22,7 @@ namespace BankSim.API.Controllers
         [HttpPost("admin/reset-db")]
         public async Task<IActionResult> ResetDb()
         {
-            // Sadece Development ortamı için!
+     
             await _dbContext.Transactions.ExecuteDeleteAsync();
             await _dbContext.Accounts.ExecuteDeleteAsync();
             await _dbContext.Customers.ExecuteDeleteAsync();

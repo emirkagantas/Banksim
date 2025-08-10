@@ -55,6 +55,11 @@ namespace BankSim.Infrastructure.Repositories
                 .Where(a => ids.Contains(a.Id))
                 .ToListAsync();
         }
+        public void Update(Account account)
+        {
+            _context.Accounts.Update(account);
+           
+        }
 
 
     }

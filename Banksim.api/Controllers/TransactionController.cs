@@ -89,7 +89,7 @@ namespace BankSim.API.Controllers
             if (fileContent == null || fileContent.Length == 0)
                 return StatusCode(500, new { message = "PDF içeriği boş döndü." });
 
-            // Doğru dosya ismi için müşteri adını AccountService'den çek!
+          
             var customerName = await _accountService.GetAccountOwnerNameAsync(filter.accountId);
             var fileName = FileNameHelper.BuildExportFileName(customerName, "pdf");
 
