@@ -22,7 +22,9 @@ namespace BankSim.Tests
             accRepo = new Mock<IAccountRepository>();
             uow = new Mock<IUnitOfWork>();
             exchangeService = new Mock<IExchangeRateService>();
-            var mapperConfig = new MapperConfiguration(cfg => cfg.AddProfile<BankSim.Application.Mapping.CustomerProfile>());
+
+            var mapperConfig = new MapperConfiguration(cfg =>
+                cfg.AddProfile<BankSim.Application.Mapping.CustomerProfile>());
             mapper = mapperConfig.CreateMapper();
 
             return new TransactionService(
@@ -34,8 +36,20 @@ namespace BankSim.Tests
         {
             var service = CreateService(out var transRepo, out var accRepo, out var uow, out var exchangeService, out var mapper);
 
-            var fromAccount = new Account { Id = 1, Balance = 100, Currency = Currency.TL };
-            var toAccount = new Account { Id = 2, Balance = 0, Currency = Currency.USD };
+            var fromAccount = new Account
+            {
+                Id = 1,
+                Balance = 100,
+                Currency = Currency.TL,
+                Customer = new Customer { Id = 10, FullName = "From User", Email = "from@example.com" }
+            };
+            var toAccount = new Account
+            {
+                Id = 2,
+                Balance = 0,
+                Currency = Currency.USD,
+                Customer = new Customer { Id = 20, FullName = "To User", Email = "to@example.com" }
+            };
 
             accRepo.Setup(x => x.GetByIdAsync(It.IsAny<int>()))
                 .ReturnsAsync((int id) => id == 1 ? fromAccount : toAccount);
@@ -64,8 +78,20 @@ namespace BankSim.Tests
         {
             var service = CreateService(out var transRepo, out var accRepo, out var uow, out var exchangeService, out var mapper);
 
-            var fromAccount = new Account { Id = 1, Balance = 10, Currency = Currency.TL };
-            var toAccount = new Account { Id = 2, Balance = 0, Currency = Currency.TL };
+            var fromAccount = new Account
+            {
+                Id = 1,
+                Balance = 10,
+                Currency = Currency.TL,
+                Customer = new Customer { Id = 10, Email = "from@example.com" }
+            };
+            var toAccount = new Account
+            {
+                Id = 2,
+                Balance = 0,
+                Currency = Currency.TL,
+                Customer = new Customer { Id = 20, Email = "to@example.com" }
+            };
 
             accRepo.Setup(x => x.GetByIdAsync(It.IsAny<int>()))
                 .ReturnsAsync((int id) => id == 1 ? fromAccount : toAccount);
@@ -86,8 +112,20 @@ namespace BankSim.Tests
         {
             var service = CreateService(out var transRepo, out var accRepo, out var uow, out var exchangeService, out var mapper);
 
-            var fromAccount = new Account { Id = 1, Balance = 100, Currency = Currency.TL };
-            var toAccount = new Account { Id = 2, Balance = 0, Currency = Currency.TL };
+            var fromAccount = new Account
+            {
+                Id = 1,
+                Balance = 100,
+                Currency = Currency.TL,
+                Customer = new Customer { Id = 10, Email = "from@example.com" }
+            };
+            var toAccount = new Account
+            {
+                Id = 2,
+                Balance = 0,
+                Currency = Currency.TL,
+                Customer = new Customer { Id = 20, Email = "to@example.com" }
+            };
 
             accRepo.Setup(x => x.GetByIdAsync(It.IsAny<int>()))
                 .ReturnsAsync((int id) => id == 1 ? fromAccount : toAccount);
@@ -108,8 +146,20 @@ namespace BankSim.Tests
         {
             var service = CreateService(out var transRepo, out var accRepo, out var uow, out var exchangeService, out var mapper);
 
-            var fromAccount = new Account { Id = 1, Balance = 100, Currency = Currency.TL };
-            var toAccount = new Account { Id = 2, Balance = 0, Currency = Currency.TL };
+            var fromAccount = new Account
+            {
+                Id = 1,
+                Balance = 100,
+                Currency = Currency.TL,
+                Customer = new Customer { Id = 10, Email = "from@example.com" }
+            };
+            var toAccount = new Account
+            {
+                Id = 2,
+                Balance = 0,
+                Currency = Currency.TL,
+                Customer = new Customer { Id = 20, Email = "to@example.com" }
+            };
 
             accRepo.Setup(x => x.GetByIdAsync(It.IsAny<int>()))
                 .ReturnsAsync((int id) => id == 1 ? fromAccount : toAccount);
@@ -145,5 +195,57 @@ namespace BankSim.Tests
             var ex = await Assert.ThrowsAsync<Exception>(() => service.TransferAsync(dto));
             Assert.Contains("Gönderen hesap bulunamadı", ex.Message);
         }
+
+        [Fact]
+        public async Task TransferAsync_ThrowsException_WhenAmountIsZero()
+        {
+            var service = CreateService(out var transRepo, out var accRepo, out var uow, out var exchangeService, out var mapper);
+
+            var from = new Account
+            {
+                Id = 1,
+                Balance = 100,
+                Currency = Currency.TL,
+                Customer = new Customer { Id = 10, Email = "from@example.com" }
+            };
+            var to = new Account
+            {
+                Id = 2,
+                Balance = 0,
+                Currency = Currency.TL,
+                Customer = new Customer { Id = 20, Email = "to@example.com" }
+            };
+
+            accRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>()))
+                   .ReturnsAsync((int id) => id == 1 ? from : to);
+
+            var dto = new TransactionDto { FromAccountId = 1, ToAccountId = 2, Amount = 0 };
+
+            var ex = await Assert.ThrowsAsync<Exception>(() => service.TransferAsync(dto));
+            Assert.Contains("Tutar sıfırdan büyük olmalı", ex.Message);
+        }
+
+        [Fact]
+        public async Task TransferAsync_ThrowsException_WhenReceiverNotFound()
+        {
+            var service = CreateService(out var transRepo, out var accRepo, out var uow, out var exchangeService, out var mapper);
+
+            var from = new Account
+            {
+                Id = 1,
+                Balance = 100,
+                Currency = Currency.TL,
+                Customer = new Customer { Id = 10, Email = "from@example.com" }
+            };
+
+            accRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(from);
+            accRepo.Setup(r => r.GetByIdAsync(2)).ReturnsAsync((Account)null!);
+
+            var dto = new TransactionDto { FromAccountId = 1, ToAccountId = 2, Amount = 10 };
+
+            var ex = await Assert.ThrowsAsync<Exception>(() => service.TransferAsync(dto));
+            Assert.Contains("Alıcı hesap bulunamadı", ex.Message);
+        }
+
     }
 }

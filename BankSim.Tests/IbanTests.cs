@@ -9,7 +9,7 @@ namespace BankSim.Tests
         {
             var iban = IbanGenerator.Generate();
             Assert.StartsWith("TR", iban);
-            Assert.Equal(20, iban.Length);
+            Assert.Equal(26, iban.Length);
         }
 
         [Fact]
