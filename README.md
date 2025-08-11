@@ -1,13 +1,13 @@
 # BankSim – Banking Simulation Project
 
-## ?? Overview
+##  Overview
 **BankSim** is a .NET Core–based banking simulation project with a modular architecture.  
 It supports core banking features such as account management, transactions, currency conversion, and invoice payments.  
 The solution also includes a **separate Invoice.API** service for managing and paying utility bills.
 
 ---
 
-## ?? Project Structure
+##  Project Structure
 BankSim.sln
 -
 +¦¦ BankSim.API           # Main banking API (accounts, transactions, authentication)
@@ -20,22 +20,22 @@ L¦¦ BankSim.Tests         # Unit tests (xUnit + Moq + InMemoryDb)
 
 ---
 
-## ? Features
+##  Features
 ### **BankSim.API**
-- ?? JWT Authentication – Secure login and token-based access
-- ?? Account Management – Create, view, and manage accounts
-- ?? Transactions – Money transfers between accounts
-- ?? Currency Conversion – Automatic FX rate handling for multi-currency transfers
-- ?? Email Notifications – Automatic notifications after transfers
+-  JWT Authentication – Secure login and token-based access
+-  Account Management – Create, view, and manage accounts
+-  Transactions – Money transfers between accounts
+-  Currency Conversion – Automatic FX rate handling for multi-currency transfers
+-  Email Notifications – Automatic notifications after transfers
 
 ### **Invoice.API**
-- ?? Invoice Listing – Retrieve invoices for a customer
-- ?? Invoice Payment – Pay bills using linked bank accounts (BankSim API)
-- ? Validation – Prevents duplicate payments, validates TCKN, and checks due dates
+-  Invoice Listing – Retrieve invoices for a customer
+-  Invoice Payment – Pay bills using linked bank accounts (BankSim API)
+-  Validation – Prevents duplicate payments, validates TCKN, and checks due dates
 
 ---
 
-## ?? Testing
+## Testing
 - **xUnit + Moq** for unit testing
 - **EF Core InMemory** for database tests
 - **Transaction service tests**:
@@ -54,7 +54,7 @@ dotnet test
 
 ---
 
-## ?? How to Run
+## How to Run
 1. Clone the repository:
    git clone https://github.com/emirkagantas/Banksim.git
    cd Banksim
@@ -70,13 +70,12 @@ dotnet test
    dotnet run --project BankSim.Ui
 
 5. Open in browser:  
-   - BankSim API Swagger: https://localhost:5001/swagger  
-   - Invoice API Swagger: https://localhost:6001/swagger  
-   - UI: https://localhost:7001
+   - BankSim API Swagger: https://localhost:7291/swagger  
+   - Invoice API Swagger: https://localhost:7035/swagger  
+   - UI: https://localhost:7284
 
 ---
 
-## ?? Contact
-Developed by **Emir Kaðan Taþ**  
-?? [Your Email Here]  
-?? [LinkedIn/GitHub Here]
+
+Developed by **Emir Kagan Tas**  
+
