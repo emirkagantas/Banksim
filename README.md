@@ -1,7 +1,7 @@
-# BankSim – Banking Simulation Project
+# BankSim â€“ Banking Simulation Project
 
 ##  Overview
-**BankSim** is a .NET Core–based banking simulation project with a modular architecture.  
+**BankSim** is a .NET Coreâ€“based banking simulation project with a modular architecture.  
 It supports core banking features such as account management, transactions, currency conversion, and invoice payments.  
 The solution also includes a **separate Invoice.API** service for managing and paying utility bills.
 
@@ -10,28 +10,34 @@ The solution also includes a **separate Invoice.API** service for managing and p
 ##  Project Structure
 BankSim.sln
 -
-+¦¦ BankSim.API           # Main banking API (accounts, transactions, authentication)
-+¦¦ BankSim.Application   # Business logic and services
-+¦¦ BankSim.Domain        # Entities, enums, interfaces
-+¦¦ BankSim.Infrastructure# Data access layer (EF Core, repositories)
-+¦¦ BankSim.Ui            # MVC-based frontend
-+¦¦ Invoice.API           # Independent API for invoice management
-L¦¦ BankSim.Tests         # Unit tests (xUnit + Moq + InMemoryDb)
++Â¦Â¦ BankSim.API           # Main banking API (accounts, transactions, authentication)
+
++Â¦Â¦ BankSim.Application   # Business logic and services
+
++Â¦Â¦ BankSim.Domain        # Entities, enums, interfaces
+
++Â¦Â¦ BankSim.Infrastructure# Data access layer (EF Core, repositories)
+
++Â¦Â¦ BankSim.Ui            # MVC-based frontend
+
++Â¦Â¦ Invoice.API           # Independent API for invoice management
+
+LÂ¦Â¦ BankSim.Tests         # Unit tests (xUnit + Moq + InMemoryDb)
 
 ---
 
 ##  Features
 ### **BankSim.API**
--  JWT Authentication – Secure login and token-based access
--  Account Management – Create, view, and manage accounts
--  Transactions – Money transfers between accounts
--  Currency Conversion – Automatic FX rate handling for multi-currency transfers
--  Email Notifications – Automatic notifications after transfers
+-  JWT Authentication â€“ Secure login and token-based access
+-  Account Management â€“ Create, view, and manage accounts
+-  Transactions â€“ Money transfers between accounts
+-  Currency Conversion â€“ Automatic FX rate handling for multi-currency transfers
+-  Email Notifications â€“ Automatic notifications after transfers
 
 ### **Invoice.API**
--  Invoice Listing – Retrieve invoices for a customer
--  Invoice Payment – Pay bills using linked bank accounts (BankSim API)
--  Validation – Prevents duplicate payments, validates TCKN, and checks due dates
+-  Invoice Listing â€“ Retrieve invoices for a customer
+-  Invoice Payment â€“ Pay bills using linked bank accounts (BankSim API)
+-  Validation â€“ Prevents duplicate payments, validates TCKN, and checks due dates
 
 ---
 
